@@ -1,0 +1,24 @@
+# Byte-compiled
+__pycache__
+*.pycod
+*$py.class
+
+# Distribution and packaging
+*.egg-info
+*.egg
+
+# Juypter notebook related
+.ipynb_checkpoints
+
+# macOS
+.DS_Store
+
+# vscode settings
+.vscode
+
+# All my development scripts start with `dev`
+dev*
+
+# Misc.
+.coverage
+notes

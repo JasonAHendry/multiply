@@ -1,0 +1,17 @@
+name: multiply2
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.7
+  - bedtools
+  - primer3
+  - blast
+  - click
+  - scipy=1.4
+  - jupyter
+  - seaborn
+  - flake8
+  - black
+  - pytest
+  - pip
