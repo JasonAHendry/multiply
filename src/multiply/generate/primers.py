@@ -91,7 +91,6 @@ def load_primer_pairs_from_primer3_output(primer3_output_path):
         for d in directions:
 
             primer_name = f"PRIMER_{d}_{ix}"
-            print(primer_name)
             s, l = primer3_dt[primer_name].split(",")
 
             pair[d] = Primer(
