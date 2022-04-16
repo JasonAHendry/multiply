@@ -79,19 +79,42 @@ def generate(design):
             primer3_runner.run(output_dir=primer3_output_dir)
 
             # Store
-            primer_pairs = load_primer_pairs_from_primer3_output(primer3_runner.output_path)
+            primer_pairs = load_primer_pairs_from_primer3_output(
+                primer3_runner.output_path,
+                add_target=target)
+
             primer_pair_dt[target.ID].extend(primer_pairs)
 
     # REDUCE TO UNIQUE PAIRS
     print("Primer pairs discovered by primer3:")
     print(f"{'Target':<15} {'Total':<10} {'Unique':<10}")
     for target_id, all_primer_pairs in primer_pair_dt.items():
-        uniq_primer_pairs = list(set(all_primer_pairs))
+
+        # Reduce to unique primer pairs, and give names
+        # this definitely can be cleaned
+        uniq_primer_pairs = set(all_primer_pairs)
+        for ix, pair in enumerate(uniq_primer_pairs):
+            pair.give_primers_names(
+                primer_code=params["primer_code"],
+                primer_ix=ix
+            )
+
+        # Print summary
         print(f"{target_id:<15} {len(all_primer_pairs):<10} {len(uniq_primer_pairs):<10}")
+
+        # Store
         primer_pair_dt[target_id] = uniq_primer_pairs
 
     # [OPTIONALLY] add tails
 
     # WRITE
+    primer_df = pd.DataFrame([
+        pair.get_primer_as_dict(direction)
+        for _, primer_pairs in primer_pair_dt.items()
+        for pair in primer_pairs
+        for direction in ["F", "R"]
+    ])
+    # probably want to insert a candidate index column
+    primer_df.to_csv(f"{params['output_dir']}/candidate_primers.csv", index=False)
 
 

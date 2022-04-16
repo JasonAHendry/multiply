@@ -12,7 +12,11 @@ class Primer:
     length: int
     tm: float
     gc: float
-    target: Target = None
+    # target: Target = None
+    name: str=""
+
+    def give_name(self, name, primer_code, primer_ix):
+        self.name = f"{name}_{primer_code}{primer_ix:d}_{self.direction}"
 
 
 @dataclass
@@ -47,11 +51,12 @@ class PrimerPair:
         R_info = f"{self.R.seq}-{self.R.start}-{self.R.length}"
         self.pair_id = f"{F_info}+{R_info}"
 
-    def get_primer_as_dict(self, direction):
+    def get_primer_as_dict(self, direction, add_product_info=True, add_target_info=True):
         """
         Get either the forward or reverse primer, as a dictionary
         
         """
+
         if direction == "F":
             primer_info = self.F.__dict__.copy()
         elif direction == "R":
@@ -59,12 +64,33 @@ class PrimerPair:
         else:
             raise ValueError("Primer direction must be in ['F', 'R'].")
 
-        primer_info.update({
-            "product_bp": self.product_bp,
-            "pair_penalty": self.pair_penalty,
-        })
+        if add_product_info:
+            primer_info.update({
+                "product_bp": self.product_bp,
+                "pair_penalty": self.pair_penalty,
+            })
+
+        if add_target_info:
+            primer_info.update({
+                "target_id": self.target.ID,
+                "target_name": self.target.name
+            })
         
         return primer_info
+
+    def give_primers_names(self, primer_code, primer_ix):
+        """
+        Give both primers names
+
+        In theory, I think I violating some code coupling
+        laws here
+        
+        """
+        if self.target is None:
+            raise ValueError("Must specify '.target' before giving primers names.")
+
+        self.F.give_name(self.target.ID, primer_code, primer_ix)
+        self.R.give_name(self.target.ID, primer_code, primer_ix)
 
     # Allow set(), specifically on self.pair_id
     def __hash__(self):
@@ -76,10 +102,19 @@ class PrimerPair:
         return self.pair_id == other.pair_id
 
 
-def load_primer_pairs_from_primer3_output(primer3_output_path):
-    """
+def load_primer_pairs_from_primer3_output(primer3_output_path, add_target=None):
+    """s
     Given an output file from primer3, return a list of
     PrimerPair objects
+
+    params
+        primer3_output_path: str
+            Path to an output file produced by primer3. This will
+            contain information a series of primer pairs, in a format
+            <key>=<value>.
+        add_target: Target [optional]
+            A Target object, containing information about on which target
+            primer3 run.
 
     """
 
@@ -129,9 +164,10 @@ def load_primer_pairs_from_primer3_output(primer3_output_path):
             R=pair["RIGHT"],
             product_bp=int(primer3_dt[f"{pair_name}_PRODUCT_SIZE"]),
             pair_penalty=float(primer3_dt[f"{pair_name}_PENALTY"]),
+            target=add_target
         )
 
-        # Store
+        # Stores
         primer_pairs.append(primer_pair)
 
     return primer_pairs
