@@ -155,7 +155,7 @@ class Primer3Runner:
             )
 
         # Prepare the input file
-        self.input_path = f"{output_dir}/{self.ID}.primer3.input"
+        self.input_path = f"{output_dir}/{self.setting_name}.{self.ID}.primer3.input"
         self.output_path = self.input_path.replace("input", "output")
         self.write_primer3_input(self.input_path)
 
