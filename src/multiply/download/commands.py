@@ -10,6 +10,7 @@ from multiply.download.downloaders import GenomeDownloader
 @click.option(
     "-g",
     "--genome_name",
+    type=click.Choice(genome_collection),
     default=None,
     help="Genome to download; must exist in collection.",
 )
@@ -22,6 +23,9 @@ def download(available, genome_name):
     must be prepared separately.
 
     """
+    if not available and genome_name is None:
+        print("Must specify options. Type 'multiply download --help' for details.")
+
     # Print available
     if available:
         # TODO:
