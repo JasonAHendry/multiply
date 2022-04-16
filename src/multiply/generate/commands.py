@@ -6,6 +6,7 @@ from multiply.util.parsing import parse_parameters
 from multiply.download.collection import genome_collection
 from multiply.generate.targets import Target, TargetSet
 from multiply.generate.primer3 import Primer3Runner
+from multiply.generate.primers import Primer, PrimerPair, load_primer_pairs_from_primer3_output
 
 
 @click.command(short_help="Generate candidate primers.")
@@ -54,18 +55,43 @@ def generate(design):
     # RUN PRIMER3
     primer3_output_dir = produce_dir(params["output_dir"], "primer3")
     primer3_runner = Primer3Runner()
-    primer3_runner.load_primer3_settings("relaxed")
-    primer3_runner.set_amplicon_size_ranges(
-        min_size_bp=params["min_size_bp"], max_size_bp=params["max_size_bp"]
-    )
+    
+    # Storage
+    primer_pair_dt = {target.ID: [] for target in target_set.targets}
 
-    for target in target_set.targets:
-        primer3_runner.set_target(
-            ID=target.ID,
-            seq=target.seq,
-            start=target.start,
-            pad_start=target.pad_start,
-            length=target.length,
+    # Iterate over settings
+    for primer3_setting in params["primer3_settings"]:
+
+        primer3_runner.load_primer3_settings(primer3_setting)
+        primer3_runner.set_amplicon_size_ranges(
+            min_size_bp=params["min_size_bp"], max_size_bp=params["max_size_bp"]
         )
 
-        primer3_runner.run(output_dir=primer3_output_dir)
+        # Iterate over targets
+        for target in target_set.targets:
+            primer3_runner.set_target(
+                ID=target.ID,
+                seq=target.seq,
+                start=target.start,
+                pad_start=target.pad_start,
+                length=target.length,
+            )
+            primer3_runner.run(output_dir=primer3_output_dir)
+
+            # Store
+            primer_pairs = load_primer_pairs_from_primer3_output(primer3_runner.output_path)
+            primer_pair_dt[target.ID].extend(primer_pairs)
+
+    # REDUCE TO UNIQUE PAIRS
+    print("Primer pairs discovered by primer3:")
+    print(f"{'Target':<15} {'Total':<10} {'Unique':<10}")
+    for target_id, all_primer_pairs in primer_pair_dt.items():
+        uniq_primer_pairs = list(set(all_primer_pairs))
+        print(f"{target_id:<15} {len(all_primer_pairs):<10} {len(uniq_primer_pairs):<10}")
+        primer_pair_dt[target_id] = uniq_primer_pairs
+
+    # [OPTIONALLY] add tails
+
+    # WRITE
+
+
