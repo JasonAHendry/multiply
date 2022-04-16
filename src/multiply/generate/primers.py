@@ -32,6 +32,7 @@ class PrimerPair:
     product_bp: int
     pair_penalty: float
     pair_id: str = field(default="", repr=False)
+    target: Target = None
 
     def __post_init__(self):
         """
@@ -45,6 +46,25 @@ class PrimerPair:
         F_info = f"{self.F.seq}-{self.F.start}-{self.F.length}"
         R_info = f"{self.R.seq}-{self.R.start}-{self.R.length}"
         self.pair_id = f"{F_info}+{R_info}"
+
+    def get_primer_as_dict(self, direction):
+        """
+        Get either the forward or reverse primer, as a dictionary
+        
+        """
+        if direction == "F":
+            primer_info = self.F.__dict__.copy()
+        elif direction == "R":
+            primer_info = self.R.__dict__.copy()
+        else:
+            raise ValueError("Primer direction must be in ['F', 'R'].")
+
+        primer_info.update({
+            "product_bp": self.product_bp,
+            "pair_penalty": self.pair_penalty,
+        })
+        
+        return primer_info
 
     # Allow set(), specifically on self.pair_id
     def __hash__(self):
