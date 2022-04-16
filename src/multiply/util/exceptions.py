@@ -5,3 +5,7 @@ class DesignFileError(Exception):
 class TargetSizeError(Exception):
     """ Error in size of a target, usually relative to specified parameters """
     pass
+
+class TargetPositionError(Exception):
+    """ Error in the position of targets, i.e. some overlap """
+    pass

@@ -1,6 +1,7 @@
 import pysam
 import pandas as pd
 from dataclasses import dataclass, field
+from multiply.util.exceptions import TargetSizeError, TargetPositionError
 
 
 # ================================================================================
@@ -145,7 +146,7 @@ class TargetSet:
 
         # Throw warning
         if too_large:
-            raise ValueError(
+            raise TargetSizeError(
                 f"The maximum amplicon size has been set to {self.max_size_bp}, "
                 f"but {len(too_large)} target(s) are larger than this: "
                 f"{', '.join([target.ID for target in too_large])}"
@@ -170,7 +171,7 @@ class TargetSet:
             # Ensure they do not overlap
             bp_bw_targets = right.start - left.end
             if bp_bw_targets <= 0:
-                raise ValueError(
+                raise TargetPositionError(
                     f"Targets {left.ID} and {right.ID} overlap. Cannot build multiplex."
                 )
 
