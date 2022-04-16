@@ -53,7 +53,7 @@ class PrimerPair:
     def __eq__(self, other):
         if not isinstance(other, PrimerPair):
             return NotImplemented
-        return self.paid_id == other.pair_id
+        return self.pair_id == other.pair_id
 
 
 def load_primer_pairs_from_primer3_output(primer3_output_path):
