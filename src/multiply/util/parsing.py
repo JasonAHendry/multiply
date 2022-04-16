@@ -2,6 +2,7 @@ import os
 import configparser
 import datetime
 from multiply.download.collection import genome_collection
+from multiply.util.exceptions import DesignFileError
 
 
 def parse_parameters(design_path):
@@ -51,7 +52,7 @@ def check_design_exists(design_path):
             f"No design file found at {design_path}. Check the path."
         )
     if not design_path.endswith(".ini"):
-        raise ValueError(f"The design {design_path} should end with `.ini`.")
+        raise DesignFileError(f"The design {design_path} should end with `.ini`.")
 
 
 def check_valid_sections(
@@ -78,7 +79,7 @@ def check_valid_sections(
 
     for section in must_include:
         if not config.has_section(section):
-            raise ValueError(f"Design missing the [{section}] section. Please add.")
+            raise DesignFileError(f"Design missing the [{section}] section. Please add.")
 
     for section_set in one_of:
         has_one = False
@@ -86,7 +87,7 @@ def check_valid_sections(
             if config.has_section(section):
                 has_one = True
         if not has_one:
-            raise ValueError(
+            raise DesignFileError(
                 f"Design must include at least one of these sections: {', '.join(section_set)}. Please add."
             )
 
@@ -111,7 +112,7 @@ def add_samples(config, params):
     genome = config.get("Sample", "genome")
 
     if genome not in genome_collection:
-        raise ValueError(f"In [Sample], the provided `genome` {genome} is not defined.")
+        raise DesignFileError(f"In [Sample], the provided `genome` {genome} is not in collection. Run 'multiply download --available' to see available genomes.")
         # Must be in the registry
 
     params["genome"] = genome
@@ -160,7 +161,7 @@ def add_genes(config, params):
     n_ids = len(target_ids)
     n_names = len(target_names)
     if not n_ids == n_names:
-        raise ValueError(
+        raise DesignFileError(
             f"In [Genes], found {n_ids} `target_ids` and {n_names} `target_names`. Ensure equal."
         )
 
@@ -292,4 +293,4 @@ def check_genes_or_regions(params):
     """
 
     if not (params["from_genes"] or params["from_regions"]):
-        raise ValueError(f"Either `from_genes` or `from_regions` must be true.")
+        raise DesignFileError(f"Either [Genes] and/or [Regions] must be specified.")
