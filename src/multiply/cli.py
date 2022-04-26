@@ -1,6 +1,6 @@
 import click
 
-# import logging
+import logging
 from multiply.download.commands import download
 from multiply.generate.commands import generate
 
@@ -35,50 +35,17 @@ def cli():
     MULTIPLY: Design multiplex PCRs in silico
 
     """
-    # # Prepare logger
-    # logger = logging.getLogger(__name__)
-    # logger.setLevel(logging.INFO)
-    # stream_handler = logging.StreamHandler()
-    # logger.addHandler(stream_handler)
+    # Prepare logger
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    stream_handler = logging.StreamHandler()
+    logger.addHandler(stream_handler)
+    
     pass
 
 
 cli.add_command(download)
 cli.add_command(generate)
-
-
-# ================================================================
-# Complete pipeline
-#
-# ================================================================
-
-
-# @cli.command(short_help="Run complete pipeline.")
-# @design_path_option
-# def pipeline(design_path):
-#     """
-#     Run the complete multiplex PCR primer design process
-
-#     """
-#     pass
-
-
-# # ================================================================
-# # Individual commands
-# #
-# # ================================================================
-
-
-# @cli.command(short_help="Map to P.f. reference.")
-# @design_path_option
-# def generate(design_path):
-#     """
-#     Map .fastq files to the P. falciparum reference genome
-
-#     """
-#     from multiply import generate
-
-#     generate.main(design_path)
 
 if __name__ == "__main__":
     cli()
