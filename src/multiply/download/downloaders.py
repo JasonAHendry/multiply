@@ -15,11 +15,20 @@ logger.addHandler(stream_handler)
 
 class GenomeDownloader:
     def __init__(self):
+        """
+        Download the FASTA and GFF files associated
+        with a given Genome instance
+        
+        """
+        
         self.genome = None
         self.log_handler = None
 
     def set_genome(self, genome):
-        """Set genome to download"""
+        """
+        Select genome to download
+        
+        """
 
         # Assign genome
         self.genome = genome
@@ -60,7 +69,10 @@ class GenomeDownloader:
 
 
     def download_fasta(self, decompress=True):
-        """Download .fasta information"""
+        """
+        Download .fasta information associated with Genome
+        
+        """
 
         logger.info("Downloading .fasta information.")
         logger.info(f"  Source URL: {self.genome.fasta_url}")
@@ -93,7 +105,10 @@ class GenomeDownloader:
         logger.info("")
 
     def download_gff(self):
-        """Download .gff information"""
+        """
+        Download .gff information associated with Genome
+        
+        """
 
         logger.info("Downloading .gff information.")
         logger.info(f"  Source URL: {self.genome.gff_url}")
@@ -119,7 +134,11 @@ class GenomeDownloader:
         logger.info("")
 
     def standardise_gff(self, standardise_fn):
-        """Process .gff information into a standardised format"""
+        """
+        Process .gff information into a standardised format
+        using a passed function `standardise_fn`
+        
+        """
 
         logger.info("Standardising .gff information.")
         logger.info(f"  Raw .gff: {self.genome.gff_raw_download}")
@@ -147,7 +166,11 @@ class GenomeDownloader:
         logger.info("")
 
     def close_logging(self):
-
+        """
+        Close the logger specific for the genome download
+        
+        """
+        
         logger.info("Log complete.")
         logger.info("")
         logger.removeHandler(self.log_handler)
