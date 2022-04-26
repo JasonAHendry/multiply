@@ -14,11 +14,15 @@ class Genome:
 
     name: str
     source: str
-    fasta_path: str
+
     fasta_url: str
-    gff_path: str = ""
+    fasta_raw_download: str
+    fasta_path: str
+
     gff_url: str = ""
-    standard_gff_path: str = ""
+    gff_raw_download: str = ""
+    gff_path: str = ""
+
     variation_dir: str = ""
 
 
@@ -61,23 +65,25 @@ class PlasmoDBFactory(GenomeFactory):
         # Prepare FASTA information
         fasta_fn = f"PlasmoDB-{self.release}_{lineage}{strain}_Genome.fasta"
         fasta_url = f"{data_url}/fasta/data/{fasta_fn}"
-        fasta_path = f"{self.output_dir}/{name}/{fasta_fn}"
+        fasta_raw_download = f"{self.output_dir}/{name}/{fasta_fn}"
+        fasta_path = fasta_raw_download  # already decompressed
 
         # Prepare GFF information
         gff_fn = f"PlasmoDB-{self.release}_{lineage}{strain}.gff"
         gff_url = f"{data_url}/gff/data/{gff_fn}"
-        gff_path = f"{self.output_dir}/{name}/{gff_fn}"
-        standard_gff_path = gff_path.replace(".gff", ".csv")
+        gff_raw_download = f"{self.output_dir}/{name}/{gff_fn}"
+        gff_path = gff_raw_download.replace(".gff", ".csv")
 
         # Create Genome
         genome = Genome(
             name=name,
             source=self.source,
-            fasta_path=fasta_path,
             fasta_url=fasta_url,
-            gff_path=gff_path,
+            fasta_raw_download=fasta_raw_download,
+            fasta_path=fasta_path,
             gff_url=gff_url,
-            standard_gff_path=standard_gff_path,
+            gff_raw_download=gff_raw_download,
+            gff_path=gff_path,
             variation_dir=include_variation if include_variation is not None else "",
         )
 
@@ -104,23 +110,25 @@ class EnsemblGenomesFactory(GenomeFactory):
         # Prepare FASTA information
         fasta_fn = f"{lineage.capitalize()}.{assembly}.dna.toplevel.fa.gz"
         fasta_url = f"{source_url}/fasta/{lineage}/dna/{fasta_fn}"
-        fasta_path = f"{self.output_dir}/{name}/{fasta_fn}"
+        fasta_raw_download = f"{self.output_dir}/{name}/{fasta_fn}"
+        fasta_path = fasta_raw_download.replace(".gz", "")
 
         # Prepare GFF information
         gff_fn = f"{lineage.capitalize()}.{assembly}.{self.release}.gff3.gz"
         gff_url = f"{source_url}/gff3/{lineage}/{gff_fn}"
-        gff_path = f"{self.output_dir}/{name}/{gff_fn}"
-        standard_gff_path = gff_path.replace(".gff3.gz", ".csv")
+        gff_raw_download = f"{self.output_dir}/{name}/{gff_fn}"
+        gff_path = gff_raw_download.replace(".gff3.gz", ".csv")
 
-        # Create genome
+        # Create Genome
         genome = Genome(
             name=name,
             source=self.source,
-            fasta_path=fasta_path,
             fasta_url=fasta_url,
-            gff_path=gff_path,
+            fasta_raw_download=fasta_raw_download,
+            fasta_path=fasta_path,
             gff_url=gff_url,
-            standard_gff_path=standard_gff_path,
+            gff_raw_download=gff_raw_download,
+            gff_path=gff_path,
             variation_dir=include_variation if include_variation is not None else "",
         )
 
