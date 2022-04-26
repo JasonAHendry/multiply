@@ -73,7 +73,8 @@ class PrimerPair:
         if add_target_info:
             primer_info.update({
                 "target_id": self.target.ID,
-                "target_name": self.target.name
+                "target_name": self.target.name,
+                "chrom": self.target.chrom,
             })
         
         return primer_info
@@ -89,8 +90,8 @@ class PrimerPair:
         if self.target is None:
             raise ValueError("Must specify '.target' before giving primers names.")
 
-        self.F.give_name(self.target.ID, primer_code, primer_ix)
-        self.R.give_name(self.target.ID, primer_code, primer_ix)
+        self.F.give_name(self.target.name, primer_code, primer_ix)
+        self.R.give_name(self.target.name, primer_code, primer_ix)
 
     # Allow set(), specifically on self.pair_id
     def __hash__(self):
@@ -103,7 +104,7 @@ class PrimerPair:
 
 
 def load_primer_pairs_from_primer3_output(primer3_output_path, add_target=None):
-    """s
+    """
     Given an output file from primer3, return a list of
     PrimerPair objects
 
@@ -147,12 +148,19 @@ def load_primer_pairs_from_primer3_output(primer3_output_path, add_target=None):
 
             primer_name = f"PRIMER_{d}_{ix}"
             s, l = primer3_dt[primer_name].split(",")
+            s = int(s)
+            l = int(l)
+
+            # Note now that the start from primer3 is from
+            # beginning of pad
+            if add_target is not None:
+                s += add_target.pad_start  # TODO: might be off by one
 
             pair[d] = Primer(
                 seq=primer3_dt[f"{primer_name}_SEQUENCE"],
                 direction="F" if d == "LEFT" else "R",
-                start=int(s),
-                length=int(l),
+                start=s,
+                length=l,
                 tm=float(primer3_dt[f"{primer_name}_TM"]),
                 gc=float(primer3_dt[f"{primer_name}_GC_PERCENT"]),
             )
