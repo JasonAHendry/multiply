@@ -33,7 +33,10 @@ class Genome:
 
 
 class GenomeFactory(ABC):
-    """Base class for creating genomes from different sources"""
+    """
+    Base class for creating genomes from different sources
+    
+    """
 
     output_dir = "genomes/information"
 
@@ -44,8 +47,7 @@ class GenomeFactory(ABC):
 
 class PlasmoDBFactory(GenomeFactory):
     """
-    Create, download, and postprocess genome information
-    from plasmodb
+    Create Genome objects from PlasmoDB
 
     """
 
@@ -91,6 +93,10 @@ class PlasmoDBFactory(GenomeFactory):
 
 
 class EnsemblGenomesFactory(GenomeFactory):
+    """
+    Create Genome objects from EnsemblGenomes
+    
+    """
 
     source = "ensemblgenomes"
     release = 52
