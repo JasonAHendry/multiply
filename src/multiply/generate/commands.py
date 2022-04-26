@@ -127,6 +127,11 @@ def generate(design):
         for pair in primer_pairs
         for direction in ["F", "R"]
     ])
+    primer_df = primer_df[
+        ["target_id", "target_name", "name", "direction", 
+        "seq", "length", "tm", "gc", "chrom", "start", "product_bp"]
+    ]
+    # if it has a proper start, it needs a chromosome
     # probably want to insert a candidate index column
     primer_df.to_csv(f"{params['output_dir']}/table.candidate_primers.csv", index=False)
 
