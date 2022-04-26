@@ -88,7 +88,7 @@ def add_gff_attributes(input_df, field_names=["Parent", "ID", "Name"]):
 
 
 # ================================================================================
-# Functions to specificially 'standardise' GFF files from different sources
+# Functions to specifically 'standardise' GFF files from different sources
 # 
 # Unfortunately there are differences in feature keywords and interpretations
 # that need to be remedied for seemless downstream usage
@@ -165,9 +165,9 @@ def standardise_EnsemblGenomes_gff(gff_df, restrict_to=["gene"]):
     standard_df = gff_df.query("feature in @restrict_to")
     standard_df = add_gff_attributes(
         input_df=standard_df,
-        field_names=["ID", "Name"]
+        field_names=["gene_id", "Name"]
     )
-    standard_df.rename({"Name":"name"}, axis=1, inplace=True)
+    standard_df.rename({"gene_id":"ID", "Name":"name"}, axis=1, inplace=True)
 
     return standard_df
 
