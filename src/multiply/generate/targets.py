@@ -1,7 +1,7 @@
 import pysam
 import pandas as pd
 from dataclasses import dataclass, field
-from multiply.util.exceptions import TargetSizeError, TargetPositionError
+from multiply.util.exceptions import NoTargetsFoundError, TargetSizeError, TargetPositionError
 
 
 # ================================================================================
@@ -10,19 +10,13 @@ from multiply.util.exceptions import TargetSizeError, TargetPositionError
 # ================================================================================
 
 
-@dataclass(order=True)
+@dataclass(order=True)  # these get sorted
 class Target:
     """
     Define a target for PCR
 
-    It's possible we want to add additional fields,
-    for example `strand`
-
-    Also, we don't want `pad_` fields to go into dataframe,
-    probably?
-
-    Easy to write a method to get a `core` indicated sequence from this data,
-    can just extract three pieces separately
+    TODO:
+    - Maybe a method .set_name()? or just set directly
 
     """
 
@@ -31,6 +25,7 @@ class Target:
     end: int
     ID: str = field(compare=False)
     name: str = field(default="", compare=False)
+    strand: str = field(default=".", compare=False)
     length: int = field(default=0, compare=False, repr=False)
     pad_start: int = field(default=0, compare=False, repr=False)
     pad_end: int = field(default=0, compare=False, repr=False)
@@ -41,11 +36,14 @@ class Target:
         """
         Create Target from a pandas Series
 
+        Note sure about change below
+
         """
 
         return cls(
-            name=series["name"] if "name" in series else "",
             ID=series["ID"],
+            name=series["name"] if "name" in series else None,
+            strand=series["strand"] if "strand" in series else ".",
             chrom=series["seqname"],
             start=series["start"],
             end=series["end"],
@@ -56,9 +54,13 @@ class Target:
         Compute the length of the target based on the start
         and end position
 
+        Note that we require a name; these are used to
+        define primer names later on.
+
         """
 
         self.length = self.end - self.start
+        self.name = self.ID if not self.name else self.name
 
     def calc_pads(self, max_size_bp):
         """
@@ -113,8 +115,10 @@ class TargetSet:
         - Much better logging
         - Could write a custom iterator method; to avoid constant self.targets
 
-
         """
+
+        if len(targets) == 0:
+            raise NoTargetsFoundError(f"No targets found.")
         self.targets = targets.copy()
         self.targets.sort()
 
@@ -216,14 +220,23 @@ class TargetSet:
 
         return self
 
-    def to_csv(self, csv_path, exclude_columns=["seq", "pad_start", "pad_end"]):
+    def to_csv(
+        self, 
+        csv_path,
+        exclude_columns=["seq", "pad_start", "pad_end"], 
+        use_columns=["ID", "name", "chrom", "start", "end", "length", "strand"]
+    ):
         """
         Write all targets to an output .csv
+
+        The `exclude_columns` and `use_columns` are badly
+        coupled to Target
 
 
         """
 
         self.targets_df = pd.DataFrame(self.targets).drop(exclude_columns, axis=1)
+        self.targets_df = self.targets_df[use_columns]
         self.targets_df.to_csv(csv_path, index=False)
 
         return self
