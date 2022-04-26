@@ -18,6 +18,16 @@ class Primer:
     def give_name(self, name, primer_code, primer_ix):
         self.name = f"{name}_{primer_code}{primer_ix:d}_{self.direction}"
 
+    def add_tail(self, tail_seq):
+        """
+        Add a tail sequence to the end of a Primer
+
+        """
+        
+        assert isinstance(tail_seq, str), "Tail sequence must be a string."
+        length_tail = len(tail_seq)
+        self.seq += tail_seq
+        self.length += length_tail
 
 @dataclass
 class PrimerPair:

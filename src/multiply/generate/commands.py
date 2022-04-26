@@ -118,7 +118,13 @@ def generate(design):
     print("Done.")
     print("")
 
-    # [OPTIONALLY] add tails
+    # Add tails, if provided
+    if params["include_tails"]:
+        # TODO: incapsulate below
+        for target_id, primer_pairs in primer_pair_dt.items():
+            for primer_pair in primer_pairs:
+                primer_pair.F.add_tail(params["F_tail"])
+                primer_pair.R.add_tail(params["R_tail"])
 
     # WRITE
     primer_df = pd.DataFrame([
