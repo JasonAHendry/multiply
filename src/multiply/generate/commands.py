@@ -29,7 +29,7 @@ def generate(design):
     # EXTRACT GENE INFORMATION
     genes = []
     if params["from_genes"]:
-        gene_df = pd.read_csv(genome.standard_gff_path)
+        gene_df = pd.read_csv(genome.gff_path)
         target_ids = params["target_ids"]
         gene_df.query("ID in @target_ids", inplace=True)
         genes = [Target.from_series(row) for _, row in gene_df.iterrows()]
@@ -43,6 +43,7 @@ def generate(design):
         regions = [Target.from_series(row) for _, row in region_df.iterrows()]
 
     # MERGE
+    #print("Merging...")
     targets = genes + regions
     target_set = (
         TargetSet(targets)
@@ -51,6 +52,7 @@ def generate(design):
         .extract_seqs(genome.fasta_path, include_pads=True)
         .to_csv(f"{params['output_dir']}/target_genes.summary.csv")
     )
+    print("Done.")
 
     # RUN PRIMER3
     primer3_output_dir = produce_dir(params["output_dir"], "primer3")
