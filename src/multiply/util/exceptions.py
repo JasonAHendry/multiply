@@ -2,6 +2,10 @@ class DesignFileError(Exception):
     """ Error in format or contents of the design file """
     pass
 
+class NoTargetsFoundError(Exception):
+    """ Error finding targets, usually related to GFF """
+    pass
+
 class TargetSizeError(Exception):
     """ Error in size of a target, usually relative to specified parameters """
     pass
