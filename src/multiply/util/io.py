@@ -1,7 +1,6 @@
 import subprocess
-
-# TODO:
-# - Some of these functions (I think) are depreciated; can be removed probably
+import pandas as pd
+from dataclasses import dataclass
 
 
 def write_fasta_from_bed(bed_path, reference_fasta_path, output_path, verbose=False):
@@ -33,6 +32,31 @@ def write_fasta_from_bed(bed_path, reference_fasta_path, output_path, verbose=Fa
     subprocess.run(cmd, shell=True, check=True)
 
     return None
+
+
+def load_bed_as_dataframe(bed_path):
+    """ Load a .bed file into a dataframe """
+    
+    @dataclass
+    class BedRecord:
+        seqname: str
+        start: int
+        end: int
+        ID: str
+        name: str=""
+    records = []
+
+    with open(bed_path, "r") as bed:
+        for l in bed:
+            if l.startswith("#"):
+                continue
+            fields = l.strip().split("\t")
+            record = BedRecord(seqname=fields[0], start=int(fields[1]), end=int(fields[2]), ID=fields[3])
+            if len(fields) == 5:
+                record.name = fields[4]
+            records.append(record)
+    
+    return pd.DataFrame(records)
 
 
 def targets_to_bed(targets, bed_path, include_pads=True):
