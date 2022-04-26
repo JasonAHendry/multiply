@@ -88,7 +88,7 @@ class GenomeCollection(dict):
 
 # ================================================================================
 # Initialise the genome collection
-# - Not sure I like this here
+# - Not sure I like this here, as it gets run on every import
 # ================================================================================
 
 

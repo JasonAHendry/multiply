@@ -3,6 +3,12 @@ import pandas as pd
 from dataclasses import dataclass
 
 
+# ================================================================================
+# Loading and adding columns to Genome Feature Format files
+#
+# ================================================================================
+
+
 def load_gff(gff_path):
     """Load a gene feature format (.gff) file into a pandas DataFrame"""
 
@@ -54,7 +60,6 @@ def load_gff(gff_path):
 def add_gff_attributes(input_df, field_names=["Parent", "ID", "Name"]):
     """ Add specific attributes as columns to .gff """
     
-    
     # Dictionary to store new columns
     dt = {field_name: [] for field_name in field_names}
     
@@ -75,7 +80,6 @@ def add_gff_attributes(input_df, field_names=["Parent", "ID", "Name"]):
     
     # Add to data frame
     df = pd.DataFrame(dt)
-    df.columns = [c.lower() for c in df.columns]
     
     # Need to reset input index
     input_df.reset_index(inplace=True, drop=True)
@@ -83,40 +87,20 @@ def add_gff_attributes(input_df, field_names=["Parent", "ID", "Name"]):
     return pd.concat([input_df, df], axis=1)
 
 
-def standardise_PlasmoDB_gff_old(gff_df, restrict_to=["protein_coding_gene"]):
-    """Processing entails adding an ID and Name column"""
-
-    # Query for relevant features
-    standard_df = gff_df.query("feature in @restrict_to")
-
-    # Extract ID and Name fields
-    IDs = []
-    Names = []
-    for attributes in standard_df["attribute"]:
-
-        # Split attributes
-        fields = attributes.split(";")
-
-        # Extract fields
-        ID = [f.split("=")[1] for f in fields if f.startswith("ID=")]
-        Name = [f.split("=")[1] for f in fields if f.startswith("Name=")]
-
-        # Store
-        IDs.append(ID[0])
-        Names.append(Name[0] if Name else None)
-
-    # Add to DataFrame
-    standard_df.insert(9, "ID", IDs)
-    standard_df.insert(10, "name", Names)
-
-    return standard_df
+# ================================================================================
+# Functions to specificially 'standardise' GFF files from different sources
+# 
+# Unfortunately there are differences in feature keywords and interpretations
+# that need to be remedied for seemless downstream usage
+#
+# ================================================================================
 
 
 def standardise_PlasmoDB_gff(gff_df):
     """
-    Processing entails adding an ID and Name column
+    Standardise GFF dataframe download from PlasmoDB
     
-    For later releases of PlasmoDB wthis is really quite cumbersome,
+    For later releases of PlasmoDB this is really quite cumbersome,
     as for genes with multiple exons, there is no single record that 
     indicates the start and end of the ORF / CDS.
     
@@ -129,6 +113,7 @@ def standardise_PlasmoDB_gff(gff_df):
         input_df=standard_df, 
         field_names=["ID", "Parent", "Name"]
     )
+    standard_df.rename({"Name": "name"}, axis=1, inplace=True)
 
     # Define fields
     @dataclass
@@ -147,7 +132,7 @@ def standardise_PlasmoDB_gff(gff_df):
     
     # Iterate over CDS parents
     records = []
-    for g, gdf in standard_df.groupby("parent"):
+    for _, gdf in standard_df.groupby("Parent"):
 
         # Extract start + stop across all CDS
         start = gdf["start"].min()
@@ -160,18 +145,21 @@ def standardise_PlasmoDB_gff(gff_df):
             start=start, 
             end=end,
             frame=None,
-            ID=first_row["parent"].split(".")[0],
-            #name=None,
+            ID=first_row["Parent"].split(".")[0],
             **first_row[kwarg_columns].to_dict()
         )
 
+        # Store
         records.append(record)
         
     return pd.DataFrame(records)
 
 
 def standardise_EnsemblGenomes_gff(gff_df, restrict_to=["gene"]):
-    """Processing entails adding an ID and Name column"""
+    """
+    Standardise GFF dataframe download from EnsemblGenomes
+    
+    """
 
     # Query for relevant features
     standard_df = gff_df.query("feature in @restrict_to")
@@ -179,26 +167,7 @@ def standardise_EnsemblGenomes_gff(gff_df, restrict_to=["gene"]):
         input_df=standard_df,
         field_names=["ID", "Name"]
     )
-
-    # # Extract ID and Name fields
-    # IDs = []
-    # Names = []
-    # for attributes in standard_df["attribute"]:
-
-    #     # Split attributes
-    #     fields = attributes.split(";")
-
-    #     # Extract fields
-    #     ID = [f.split("=")[1] for f in fields if f.startswith("ID=")]
-    #     Name = [f.split("=")[1] for f in fields if f.startswith("Name=")]
-
-    #     # Store
-    #     IDs.append(ID[0].split(":")[1])
-    #     Names.append(Name[0] if Name else None)
-
-    # # Add to DataFrame
-    # standard_df.insert(9, "ID", IDs)
-    # standard_df.insert(10, "name", Names)
+    standard_df.rename({"Name":"name"}, axis=1, inplace=True)
 
     return standard_df
 
