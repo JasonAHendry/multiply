@@ -3,6 +3,7 @@ import pandas as pd
 #from multiply.cli import design_path_option
 from multiply.util.dirs import create_output_directory, produce_dir
 from multiply.util.parsing import parse_parameters
+from multiply.util.io import load_bed_as_dataframe
 from multiply.download.collection import genome_collection
 from multiply.generate.targets import Target, TargetSet
 from multiply.generate.primer3 import Primer3Runner
@@ -33,26 +34,31 @@ def generate(design):
         target_ids = params["target_ids"]
         gene_df.query("ID in @target_ids", inplace=True)
         genes = [Target.from_series(row) for _, row in gene_df.iterrows()]
+        
+        # Pretty ugly, would be nice to encapsulate
+        if params["has_names"]:
+            for gene in genes:
+                gene.name = params["target_id_to_name"][gene.ID]
+        
 
     # EXTRACT REGION INFORMATION
     regions = []
     if params["from_regions"]:
-        region_df = pd.read_csv(
-            params["region_bed"], sep="\t", names=["seqname", "start", "end", "ID"]
-        )
+        region_df = load_bed_as_dataframe(params["region_bed"])
+        # region_df = pd.read_csv(
+        #     params["region_bed"], sep="\t", names=["seqname", "start", "end", "ID"]
+        # )
         regions = [Target.from_series(row) for _, row in region_df.iterrows()]
 
     # MERGE
-    #print("Merging...")
     targets = genes + regions
     target_set = (
         TargetSet(targets)
         .check_size_compatible(params["max_size_bp"])
         .calc_pads()
         .extract_seqs(genome.fasta_path, include_pads=True)
-        .to_csv(f"{params['output_dir']}/target_genes.summary.csv")
+        .to_csv(f"{params['output_dir']}/table.targets_overview.csv")
     )
-    print("Done.")
 
     # RUN PRIMER3
     primer3_output_dir = produce_dir(params["output_dir"], "primer3")
@@ -80,10 +86,13 @@ def generate(design):
             )
             primer3_runner.run(output_dir=primer3_output_dir)
 
+            # UP TO HERE I THINK EVERYTHING IS GOOD
+
             # Store
             primer_pairs = load_primer_pairs_from_primer3_output(
                 primer3_runner.output_path,
-                add_target=target)
+                add_target=target
+            )
 
             primer_pair_dt[target.ID].extend(primer_pairs)
 
@@ -106,6 +115,8 @@ def generate(design):
 
         # Store
         primer_pair_dt[target_id] = uniq_primer_pairs
+    print("Done.")
+    print("")
 
     # [OPTIONALLY] add tails
 
@@ -117,6 +128,6 @@ def generate(design):
         for direction in ["F", "R"]
     ])
     # probably want to insert a candidate index column
-    primer_df.to_csv(f"{params['output_dir']}/candidate_primers.csv", index=False)
+    primer_df.to_csv(f"{params['output_dir']}/table.candidate_primers.csv", index=False)
 
 
