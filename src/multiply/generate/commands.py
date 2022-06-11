@@ -58,6 +58,7 @@ def generate(design):
         .calc_pads()
         .extract_seqs(genome.fasta_path, include_pads=True)
         .to_csv(f"{params['output_dir']}/table.targets_overview.csv")
+        .to_fasta(f"{params['output_dir']}/targets_sequence.fasta")
     )
 
     # RUN PRIMER3

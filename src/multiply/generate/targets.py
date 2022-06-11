@@ -82,6 +82,7 @@ class Target:
 
         """
 
+        self.pads_included = include_pads
         with pysam.FastaFile(reference_fasta_path) as fasta:
 
             # Define start and end of sequence to extract
@@ -108,7 +109,7 @@ class Target:
 class TargetSet:
     def __init__(self, targets):
         """
-        Write this init
+        Collect and co-ordinate information about a set of Target objects
 
         TODO:
         - Custom exception for amplicon sizes
@@ -223,27 +224,30 @@ class TargetSet:
     def to_csv(
         self, 
         csv_path,
-        exclude_columns=["seq", "pad_start", "pad_end"], 
-        use_columns=["ID", "name", "chrom", "start", "end", "length", "strand"]
+        keep_columns=["ID", "name", "chrom", "start", "end", "length", "strand", "pad_start", "pad_end"]
     ):
         """
         Write all targets to an output .csv
 
-        The `exclude_columns` and `use_columns` are badly
-        coupled to Target
-
-
         """
 
-        self.targets_df = pd.DataFrame(self.targets).drop(exclude_columns, axis=1)
-        self.targets_df = self.targets_df[use_columns]
+        self.targets_df = pd.DataFrame(self.targets)
+        self.targets_df = self.targets_df[keep_columns]
         self.targets_df.to_csv(csv_path, index=False)
 
         return self
 
     def to_fasta(self, fasta_path):
-        """Write all targets to an ouptut .fasta"""
+        """ Write all targets to an ouptut .fasta """
 
-        pass
+        with open(fasta_path, "w") as fasta:
+            for target in self.targets:
+                header = f">ID={target.ID}|name={target.name}"
+                header += f"|ORF={target.chrom}:{target.start}-{target.end}"
+                header += f"|PRIMER_PAD_REGION={target.chrom}:{target.pad_start}-{target.pad_end}|"
+                header += f"PADS_INCLUDED={target.pads_included}\n"
+                seq = f"{target.seq}\n"
+                fasta.write(header)
+                fasta.write(seq)
 
         return self
