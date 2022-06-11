@@ -13,10 +13,10 @@ class Primer:
     tm: float
     gc: float
     # target: Target = None
-    name: str=""
+    primer_name: str=""
 
     def give_name(self, name, primer_code, primer_ix):
-        self.name = f"{name}_{primer_code}{primer_ix:d}_{self.direction}"
+        self.primer_name = f"{name}_{primer_code}{primer_ix:d}_{self.direction}"
 
     def add_tail(self, tail_seq):
         """
@@ -57,11 +57,11 @@ class PrimerPair:
 
         """
 
-        F_info = f"{self.F.seq}-{self.F.start}-{self.F.length}"
-        R_info = f"{self.R.seq}-{self.R.start}-{self.R.length}"
+        F_info = f"{self.F.start}:{self.F.seq}"
+        R_info = f"{self.R.start}:{self.R.seq}"
         self.pair_id = f"{F_info}+{R_info}"
 
-    def get_primer_as_dict(self, direction, add_product_info=True, add_target_info=True):
+    def get_primer_as_dict(self, direction, add_product_info=True, add_target_info=True, add_pair_id=False, add_pair_name=True):
         """
         Get either the forward or reverse primer, as a dictionary
         
@@ -87,6 +87,12 @@ class PrimerPair:
                 "chrom": self.target.chrom,
             })
         
+        if add_pair_id:
+            primer_info["pair_id"] = self.pair_id
+
+        if add_pair_name:
+            primer_info["pair_name"] = self.pair_name
+
         return primer_info
 
     def give_primers_names(self, primer_code, primer_ix):
@@ -102,6 +108,7 @@ class PrimerPair:
 
         self.F.give_name(self.target.name, primer_code, primer_ix)
         self.R.give_name(self.target.name, primer_code, primer_ix)
+        self.pair_name = f"{self.target.name}_{primer_code}{primer_ix:d}"
 
     # Allow set(), specifically on self.pair_id
     def __hash__(self):

@@ -135,7 +135,7 @@ def generate(design):
         for direction in ["F", "R"]
     ])
     primer_df = primer_df[
-        ["target_id", "target_name", "name", "direction", 
+        ["target_id", "target_name", "pair_name", "primer_name", "direction", 
         "seq", "length", "tm", "gc", "chrom", "start", "product_bp"]
     ]
     # if it has a proper start, it needs a chromosome
