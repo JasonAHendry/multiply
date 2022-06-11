@@ -53,8 +53,13 @@ def load_gff(gff_path):
 
             # Store
             entries.append(entry)
+    
+    # Coerce data types
+    gff_df = pd.DataFrame(entries)
+    gff_df["start"] = gff_df["start"].astype("int")
+    gff_df["end"] = gff_df["end"].astype("int")
 
-    return pd.DataFrame(entries)
+    return gff_df
 
 
 def add_gff_attributes(input_df, field_names=["Parent", "ID", "Name"]):
