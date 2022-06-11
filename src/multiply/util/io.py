@@ -80,3 +80,29 @@ def targets_to_bed(targets, bed_path, include_pads=True):
             # Write to bed
             text = f"{target.chrom}\t{s}\t{e}\t{target.ID}\t{target.name}\n"
             bed.write(text)
+
+
+def load_fasta_as_dict(fasta_path):
+    """
+    Load a `.fasta` file as a dictionary
+    
+    """
+    
+    dt = {}
+    with open(fasta_path, "r") as fasta:
+        
+        for line in fasta:
+            
+            # Extract header and sequence
+            if line.startswith(">"):
+                header = line[1:].rstrip()
+            seq = fasta.readline().rstrip()
+            
+            # Ensure unique
+            if header in dt:
+                raise ValueError(f"Header {header} found more than once in {fasta_path}.")
+            
+            # Add
+            dt[header] = seq
+            
+    return dt
