@@ -3,6 +3,7 @@ import click
 import logging
 from multiply.download.commands import download
 from multiply.generate.commands import generate
+from multiply.view.commands import view
 
 
 # ================================================================
@@ -43,9 +44,9 @@ def cli():
     
     pass
 
-
 cli.add_command(download)
 cli.add_command(generate)
+cli.add_command(view)
 
 if __name__ == "__main__":
     cli()
