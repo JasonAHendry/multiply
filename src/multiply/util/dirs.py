@@ -30,7 +30,7 @@ def produce_dir(*args):
 
 
 def create_output_directory(params):
-    """Create output directroy for an experiment"""
+    """Create output directory for an experiment"""
 
     # Create a date stamped output directory
     today = datetime.datetime.today().strftime("%Y-%m-%d")
