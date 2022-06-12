@@ -24,9 +24,3 @@ def create_nn_score_dt(match_json, single_mismatch_json, double_mismatch_score=0
     nn_score_dt.update(single_mismatch_dt)
 
     return nn_score_dt
-
-
-match_json = "settings/alignment/nn_model/match.json"
-single_mismatch_json = "settings/alignment/nn_model/single_mismatch.json"
-
-NN_SCORES = create_nn_score_dt(match_json, single_mismatch_json)

@@ -1,0 +1,7 @@
+{    
+    "end_length": 4,
+    "end_penalty": 0.1,
+    "end_bonus": -1,
+    "match_scores": "settings/alignment/primer_dimer/nn_model/match.json",
+    "single_mismatch_scores": "settings/alignment/primer_dimer/nn_model/single_mismatch.json"
+}

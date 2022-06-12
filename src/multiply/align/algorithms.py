@@ -1,7 +1,7 @@
+import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-
-from .nn_model import NN_SCORES
+from .nn_model import create_nn_score_dt
 
 # import numba
 
@@ -59,6 +59,10 @@ class AlignmentAlgorithm(ABC):
         self.score = None  # reset
 
     @abstractmethod
+    def load_parameters():
+        pass
+
+    @abstractmethod
     def align():
         """
         Align the primers
@@ -112,11 +116,28 @@ class PrimerDimerAlgorithm(AlignmentAlgorithm):
 
     """
 
-    rc_map = {"A": "T", "T": "A", "C": "G", "G": "C"}
-    nn_scores = NN_SCORES
-    end_length = 4
-    end_penalty = 0.1
-    end_bonus = -1
+    param_path = "settings/alignment/primer_dimer/parameters.json"
+    rc_map = {"A": "T", "T": "A", "C": "G", "G": "C"}  # Make this a global
+
+    def load_parameters(self):
+        """
+        Load parameters necessary for Primer Dimer algorithm,
+        and set as attributes
+        
+        """
+        # Load parameter JSON
+        params = json.load(open(self.param_path, "r"))
+
+        # Load nearest neighbour model
+        self.nn_scores = create_nn_score_dt(
+            match_json=params["match_scores"],
+            single_mismatch_json=params["single_mismatch_scores"]
+        )
+
+        # Load penalties
+        self.end_length = params["end_length"]
+        self.end_penalty = params["end_penalty"]
+        self.end_bonus = params["end_bonus"]
 
     def align(self):
         """

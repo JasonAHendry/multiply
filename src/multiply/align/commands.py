@@ -31,6 +31,7 @@ def align(primer_csv):
 
     # SET MODEL
     model = PrimerDimerAlgorithm()
+    model.load_parameters()
 
     # COMPUTE PAIRWISE
     # - Note how essential ordering is here
