@@ -49,7 +49,7 @@ def check_design_exists(design_path):
 
     if not os.path.isfile(design_path):
         raise FileNotFoundError(
-            f"No design file found at {design_path}. Check the path."
+            f"No design file found at {design_path}. Presently at {os.getcwd()}. Check the path."
         )
     if not design_path.endswith(".ini"):
         raise DesignFileError(f"The design {design_path} should end with `.ini`.")
@@ -210,8 +210,10 @@ def add_primers(config, params):
 
     params["include_tails"] = config.getboolean("Primers", "include_tails")
     if params["include_tails"]:
-        params["F_tail"] = config.get("Primers", "F_tail")
-        params["R_tail"] = config.get("Primers", "R_tail")
+        
+        # TODO: probably add sanity check here? Or no?
+        params["F_tail"] = config.get("Primers", "F_tail").upper()
+        params["R_tail"] = config.get("Primers", "R_tail").upper()
 
     return params
 
