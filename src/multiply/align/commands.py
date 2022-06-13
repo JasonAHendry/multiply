@@ -38,12 +38,14 @@ def align(primer_csv):
     alignments = []
     pairwise_scores = np.zeros((n_primers, n_primers))
     for i in range(n_primers):
+
+        # Extract first primer sequecne
+        primer1_seq, primer1_name = primer_df.iloc[i][["seq", "primer_name"]]
+
         for j in range(i, n_primers):
-            # Extract sequences
-            primer1_seq = primer_df.iloc[i]["seq"]
-            primer1_name = primer_df.iloc[i]["primer_name"]
-            primer2_seq = primer_df.iloc[j]["seq"]
-            primer2_name = primer_df.iloc[j]["primer_name"]
+
+            # Extract second primer sequence
+            primer2_seq, primer2_name = primer_df.iloc[j][["seq", "primer_name"]]
 
             # Align
             model.set_primers(primer1_seq, primer2_seq, primer1_name, primer2_name)
