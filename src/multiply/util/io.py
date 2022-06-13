@@ -106,3 +106,14 @@ def load_fasta_as_dict(fasta_path):
             dt[header] = seq
             
     return dt
+
+def write_fasta_from_dict(input_dt, output_fasta):
+    """
+    Write a `.fasta` file to `output_fasta` from an input dictionary
+    `input_dt`
+    
+    """
+    with open(output_fasta, "w") as fasta:
+        for header, seq in input_dt.items():
+            fasta.write(f">{header}\n")
+            fasta.write(f"{seq}\n")
