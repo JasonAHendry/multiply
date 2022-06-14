@@ -2,7 +2,8 @@ import os
 import click
 import pandas as pd
 
-from .blast import make_blast_db, run_blast
+from .runner import BlastRunner
+from .annotator import ANNOTATIONS, PrimerBlastRecord
 from multiply.download.collection import genome_collection
 from multiply.util.dirs import produce_dir
 from multiply.util.io import write_fasta_from_dict
@@ -38,33 +39,52 @@ def blast(primer_csv, genome_name):
     primer_df = pd.read_csv(primer_csv)
     n_primers = primer_df.shape[0]
 
-    # WRITE PRIMER FASTA (for blast input)
+    # WRITE PRIMER FASTA, for BLAST input
     primer_dt = dict(zip(primer_df["primer_name"], primer_df["seq"]))
     primer_fasta = f"{output_dir}/cadidate_primer.fasta"
-    write_fasta_from_dict(
-        input_dt=primer_dt,
-        output_fasta=primer_fasta
-    )
-
-    # CHECK FOR / CREATE BLAST DATABASE (will probably want this in download)
-    print("  Making blast database...")
-    blast_db = make_blast_db(genome.fasta_path)
+    write_fasta_from_dict(input_dt=primer_dt, output_fasta=primer_fasta)
 
     # RUN BLAST
-    print("  Runnning blast...")
-    blast_output=f"{output_dir}/table.blast_results.output"
-    run_blast(
-        db_path=blast_db,
-        input_fasta=primer_fasta,
-        output_blast=blast_output,
-        output_fmt=6
+    blast_df = (
+        BlastRunner(input_fasta=primer_fasta, reference_fasta=genome.fasta_path)
+        .create_database()
+        .run(output_archive=f"{output_dir}/blast.candidate_primers.archive")
+        .reformat_output_as_table(
+            output_table=f"{output_dir}/blast.candidate_primers.table"
+        )
+        .get_dataframe()
     )
 
-    print("Done.")
+    # ANNOTATE RESULTS
+    # Insert additional columns
+    for annot_name, annot_func in ANNOTATIONS.items():
+        blast_df.insert(
+            blast_df.shape[1], annot_name, blast_df.apply(func=annot_func, axis=1)
+        )
+
+    # Produce summary of alignments for each primer
+    primer_blast_records = [
+        PrimerBlastRecord(
+            primer_name=qseqid,
+            primer_pair_name=qseqid[:-2],
+            target_name=qseqid.split("_")[0],
+            total_alignments=qseqid_df.shape[0],
+            **qseqid_df[ANNOTATIONS].sum().to_dict(),
+        )
+        for qseqid, qseqid_df in blast_df.groupby("qseqid")
+    ]
+    blast_primer_df = (
+        pd.DataFrame(primer_blast_records)
+        .sort_values("predicted_bound", ascending=False)
+        .to_csv(f"{output_dir}/table.blast.candidate_primers.summary.csv")
+    )
+
     # Look for off-target alignments more intelligently
     # - (1) Find probable binding sites (3') end
-    # - (2) See if any of those produce amplicon
+    # - (2) See if any of those produce amplicon(s)
     # - (3) See if any of those interact with *target* amplicons
 
-
     # CREATE SUMMARY DATAFRAME(S) OF OUTPUT
+
+    # PLOT / VISUALISE
+    # - What would *actually* be a nice visualisation?
