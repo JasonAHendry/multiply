@@ -1,0 +1,6 @@
+{
+    "word_size": 7,
+    "evalue_threshold": 4,
+    "alignment_length_threshold": 12,
+    "offtarget_amplicon_size_threshold_bp": 6000
+}
