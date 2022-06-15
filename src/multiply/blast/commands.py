@@ -5,6 +5,7 @@ import pandas as pd
 
 from .runner import BlastRunner
 from .annotator import BlastResultsAnnotator
+from .offtarget import AmpliconFinder
 from multiply.download.collection import genome_collection
 from multiply.util.dirs import produce_dir
 from multiply.util.io import write_fasta_from_dict
@@ -38,7 +39,7 @@ def blast(primer_csv, genome_name):
 
     # LOAD DATA
     primer_df = pd.read_csv(primer_csv)
-    #n_primers = primer_df.shape[0]
+    # n_primers = primer_df.shape[0]
 
     # LOAD PARAMATERS
     params = json.load(open("settings/blast/parameters.json", "r"))
@@ -55,7 +56,8 @@ def blast(primer_csv, genome_name):
         .create_database()
         .run(
             word_size=params["word_size"],
-            output_archive=f"{output_dir}/blast.candidate_primers.archive")
+            output_archive=f"{output_dir}/blast.candidate_primers.archive",
+        )
         .reformat_output_as_table(
             output_table=f"{output_dir}/blast.candidate_primers.table"
         )
@@ -66,14 +68,23 @@ def blast(primer_csv, genome_name):
     annotator = BlastResultsAnnotator(blast_df)
     annotator.build_annotation_dict(
         length_threshold=params["alignment_length_threshold"],
-        evalue_threshold=params["evalue_threshold"]
+        evalue_threshold=params["evalue_threshold"],
     )
     annotator.add_annotations()
-    annotator.summarise_by_primer(f"{output_dir}/table.blast.candidate_primers.summary.csv")
+    annotator.summarise_by_primer(
+        f"{output_dir}/table.blast.candidate_primers.summary.csv"
+    )
 
     # PREDICT AMPLICONS
-    # - Ensure that on-target amplicons are found for all primer pairs
-    # - Then search for off-target amplicons
+    bound_df = annotator.get_predicted_bound()
+    amplicon_finder = AmpliconFinder(bound_df)
+    amplicon_finder.find_amplicons()
+    amplicon_df = amplicon_finder.amplicon_df
+    amplicon_df.to_csv(f"{output_dir}/table.predicted_amplicons.csv")
 
+    amplicon_finder.create_ontarget_dataframe(primer_df)
+    amplicon_finder.create_offtarget_dataframe()
 
+    amplicon_finder.ontarget_df.to_csv(f"{output_dir}/table.ontarget_amplicons.csv")
+    amplicon_finder.offtarget_df.to_csv(f"{output_dir}/table.offtarget_amplicons.csv") 
     # PLOT
