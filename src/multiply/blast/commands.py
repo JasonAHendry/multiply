@@ -4,7 +4,7 @@ import json
 import pandas as pd
 
 from .runner import BlastRunner
-from .annotator import BlastResultsAnnotator, ANNOTATIONS, PrimerBlastRecord
+from .annotator import BlastResultsAnnotator
 from multiply.download.collection import genome_collection
 from multiply.util.dirs import produce_dir
 from multiply.util.io import write_fasta_from_dict
@@ -71,39 +71,9 @@ def blast(primer_csv, genome_name):
     annotator.add_annotations()
     annotator.summarise_by_primer(f"{output_dir}/table.blast.candidate_primers.summary.csv")
 
+    # PREDICT AMPLICONS
+    # - Ensure that on-target amplicons are found for all primer pairs
+    # - Then search for off-target amplicons
 
 
-    # # Insert additional columns
-    # for annot_name, annot_func in ANNOTATIONS.items():
-    #     blast_df.insert(
-    #         blast_df.shape[1], annot_name, blast_df.apply(func=annot_func, axis=1)
-    #     )
-
-    # # Produce summary of alignments for each primer
-    # primer_blast_records = [
-    #     PrimerBlastRecord(
-    #         primer_name=qseqid,
-    #         primer_pair_name=qseqid[:-2],
-    #         target_name=qseqid.split("_")[0],
-    #         total_alignments=qseqid_df.shape[0],
-    #         **qseqid_df[ANNOTATIONS].sum().to_dict(),
-    #     )
-    #     for qseqid, qseqid_df in blast_df.groupby("qseqid")
-    # ]
-    # blast_primer_df = (
-    #     pd.DataFrame(primer_blast_records)
-    #     .sort_values("predicted_bound", ascending=False)
-    #     .to_csv(f"{output_dir}/table.blast.candidate_primers.summary.csv")
-    # )
-
-
-
-    # Look for off-target alignments more intelligently
-    # - (1) Find probable binding sites (3') end
-    # - (2) See if any of those produce amplicon(s)
-    # - (3) See if any of those interact with *target* amplicons
-
-    # CREATE SUMMARY DATAFRAME(S) OF OUTPUT
-
-    # PLOT / VISUALISE
-    # - What would *actually* be a nice visualisation?
+    # PLOT
