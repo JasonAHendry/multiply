@@ -6,7 +6,7 @@ class BlastResultsAnnotator:
     def __init__(self, blast_df):
         """
         Annotate tabular results produced by running BLAST with
-        `-outfmt 6`. 
+        `-outfmt 6`.
 
         params
             blast_df: DataFrame (n_hits, n_columns)
@@ -49,7 +49,7 @@ class BlastResultsAnnotator:
         sequence will bind
 
         """
-        if not "predicted_bound" in self.blast_df:
+        if "predicted_bound" not in self.blast_df:
             raise ValueError(
                 "`blast_df` must contain a column `predicted_bound`. Try running `.add_annotations()` first."
             )

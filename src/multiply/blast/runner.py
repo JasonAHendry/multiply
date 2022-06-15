@@ -111,7 +111,7 @@ class BlastRunner:
         and basic munging
 
         """
-        
+
         # Load as a dataframe
         self.blast_df = pd.read_csv(
             self.output_table, sep="\t", names=self.BLAST_COLS.split(" ")
@@ -122,7 +122,7 @@ class BlastRunner:
         Return a dataframe of tabular BLAST results
 
         """
-        
+
         self._load_as_dataframe()
 
         return self.blast_df
