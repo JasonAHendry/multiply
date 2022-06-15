@@ -4,20 +4,25 @@ import subprocess
 import pandas as pd
 
 
-# CONSTANTS
-BLAST_COLS = "qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sstrand qlen"
-WORD_SIZE = 7
-
-
 class BlastRunner:
 
     BLAST_COLS = "qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sstrand qlen"
 
     def __init__(self, input_fasta, reference_fasta):
         """
-        Run BLAST
+        Interface for running BLAST:
+        - Creates BLAST database
+        - Runs BLAST in archive mode
+        - Reformats to a table
+        - Converts table to a pandas data frame
 
-
+        params
+            input_fasta: str
+                Path to a .fasta file containing query sequences
+                for BLAST search. In the context of MULTIPLY,
+                these are primer sequences.
+            reference_fasta: str
+                Reference sequence against which queries are BLASTed.
         """
         self.input_fasta = input_fasta
         self.reference_fasta = reference_fasta
@@ -50,7 +55,7 @@ class BlastRunner:
 
         return self
 
-    def run(self, output_archive):
+    def run(self, output_archive, word_size=7):
         """
         Run blast, writing a BLAST archive to `output_archive`
 
@@ -64,7 +69,7 @@ class BlastRunner:
         cmd = "blastn"
         cmd += f" -db {self.db_path}"
         cmd += f" -query {self.input_fasta}"
-        cmd += f" -word_size {WORD_SIZE}"
+        cmd += f" -word_size {word_size}"
         cmd += f" -outfmt 11"
         cmd += f" -out {output_archive}"
 
@@ -78,7 +83,8 @@ class BlastRunner:
 
     def reformat_output_as_table(self, output_table):
         """
-        Reformat the output from `self.run()`
+        Reformat the output from `self.run()` to a table form,
+        e.g. `-outfmt 6`.
 
         """
 
@@ -96,18 +102,27 @@ class BlastRunner:
 
         return self
 
-    def _convert_to_dataframe(self):
+    def _load_as_dataframe(self):
         """
-        Convert from tabular output to a pandas dataframe, and save
+        Load tabular BLAST output as a pandas dataframe
+
+        TODO:
+        - Could optionally allow for column name remapping here,
+        and basic munging
 
         """
+        
         # Load as a dataframe
         self.blast_df = pd.read_csv(
             self.output_table, sep="\t", names=self.BLAST_COLS.split(" ")
         )
 
     def get_dataframe(self):
+        """
+        Return a dataframe of tabular BLAST results
 
-        self._convert_to_dataframe()
+        """
+        
+        self._load_as_dataframe()
 
         return self.blast_df
