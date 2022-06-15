@@ -5,6 +5,7 @@ from multiply.download.commands import download
 from multiply.generate.commands import generate
 from multiply.view.commands import view
 from multiply.align.commands import align
+from multiply.blast.commands import blast
 
 
 # ================================================================
@@ -49,6 +50,7 @@ cli.add_command(download)
 cli.add_command(generate)
 cli.add_command(view)
 cli.add_command(align)
+cli.add_command(blast)
 
 if __name__ == "__main__":
     cli()
