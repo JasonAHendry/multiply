@@ -94,4 +94,4 @@ class BlastResultsAnnotator:
 
         # Optionally write
         if output_path is not None:
-            self.blast_primer_df.to_csv(output_path)
+            self.blast_primer_df.to_csv(output_path, index=False)
