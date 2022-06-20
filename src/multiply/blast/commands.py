@@ -11,6 +11,12 @@ from multiply.util.dirs import produce_dir
 from multiply.util.io import write_fasta_from_dict
 
 
+# ================================================================================
+# Main function wrapped for Click CLI
+#
+# ================================================================================
+
+
 @click.command(short_help="BLAST candidate primers.")
 @click.option(
     "-p",
@@ -28,10 +34,22 @@ from multiply.util.io import write_fasta_from_dict
 )
 def blast(primer_csv, genome_name):
     """
-    Search for off-target binding sites and amplicons using blast
+    BLAST primers in `primer_csv` against reference genome given by `genome_name` to
+    find off-target binding sites and amplicons
+
+    Visit `settings/blast` for blast settings.
 
     """
+    main(primer_csv, genome_name)
 
+
+# ================================================================================
+# Main function, unwrapped
+#
+# ================================================================================
+
+
+def main(primer_csv, genome_name):
     # PARSE CLI
     input_dir = os.path.dirname(primer_csv)
     output_dir = produce_dir(input_dir, "blast")

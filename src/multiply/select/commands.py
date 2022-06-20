@@ -6,6 +6,12 @@ from .cost_functions import LinearCost
 from .selectors import GreedySearch
 
 
+# ================================================================================
+# Main function wrapped for Click CLI
+#
+# ================================================================================
+
+
 @click.command(short_help="Select optimal multiplex(es).")
 @click.option(
     "-r",
@@ -16,12 +22,25 @@ from .selectors import GreedySearch
 )
 def select(result_dir):
     """
-    Select optimal multiplex(es) by minimising a cost function incorporating
-    information about primer quality (`multiply generate`), primer dimers (`multiply align`),
-    off-target amplicons (`multiply blast`)
+    Select optimal multiplex(es) from a set of candidate primers
+
+    It is assumed that the following commands have been run:
+    `multiply generate`, `multiply align`, `multiply blast`.
+
+    Information about primer quality, primer dimers, and off-target
+    binding sites are fed into a cost function, which is then minimised.
 
     """
+    main(result_dir)
 
+
+# ================================================================================
+# Main function, unwrapped
+#
+# ================================================================================
+
+
+def main(result_dir):
     # PARSE CLI
     output_dir = produce_dir(result_dir, "select")
 
@@ -72,7 +91,7 @@ def select(result_dir):
     selector = GreedySearch(primer_df, cost_function)
     multiplexes = selector.run()
 
-    # FORMAT OUTPUTSs
+    # FORMAT OUTPUTS
     # Reduce to unique and sort
     final_multiplexes = sorted(set(multiplexes))
 

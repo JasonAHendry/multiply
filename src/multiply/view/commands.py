@@ -13,13 +13,19 @@ from multiply.util.io import load_fasta_as_dict
 from multiply.util.dirs import produce_dir
 
 
+# ================================================================================
+# Main function wrapped for Click CLI
+#
+# ================================================================================
+
+
 @click.command(short_help="Visualise candidate primer locations.")
 @click.option(
-    "-i",
-    "--input_dir",
+    "-r",
+    "--result_dir",
     type=click.Path(exists=True),
     required=True,
-    help="Input directory containing: `table.candidate_primers.csv`, `table.targets_overview.csv`, and `targets_sequence.fasta`.",
+    help="Result directory containing: `table.candidate_primers.csv`, `table.targets_overview.csv`, and `targets_sequence.fasta`.",
 )
 @click.option(
     "-g",
@@ -28,15 +34,25 @@ from multiply.util.dirs import produce_dir
     required=True,
     help="Name of genome to download.",
 )
-def view(input_dir, genome_name):
+def view(result_dir, genome_name):
     """
-    Visualise all candidate primers and amplicons for each target
+    MULTIPLY: View binding locations of candidate primers
+    
+    """
+    main(result_dir, genome_name)
 
-    """
+
+# ================================================================================
+# Main function, unwrapped
+#
+# ================================================================================
+
+
+def main(result_dir, genome_name):
     # DEFINE AND CHECK FILE PATHS
-    primer_path = f"{input_dir}/table.candidate_primers.csv"
-    targets_path = f"{input_dir}/table.targets_overview.csv"
-    fasta_path = f"{input_dir}/targets_sequence.fasta"
+    primer_path = f"{result_dir}/table.candidate_primers.csv"
+    targets_path = f"{result_dir}/table.targets_overview.csv"
+    fasta_path = f"{result_dir}/targets_sequence.fasta"
     for path in [primer_path, targets_path, fasta_path]:
         if not os.path.exists(path):
             raise FileNotFoundError(
@@ -44,7 +60,7 @@ def view(input_dir, genome_name):
             )
 
     # Create output directory
-    output_dir = produce_dir(input_dir, "view")
+    output_dir = produce_dir(result_dir, "view")
 
     # LOAD
     # Multiplex data
@@ -86,5 +102,5 @@ def view(input_dir, genome_name):
         comb_plotter.plot(
             start=int(row["pad_start"]), 
             end=int(row["pad_end"]),
-            output_path=f"{input_dir}/view/{target_id}.pdf"
+            output_path=f"{result_dir}/view/{target_id}.pdf"
         )

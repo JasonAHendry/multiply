@@ -1,6 +1,5 @@
 import click
 import pandas as pd
-#from multiply.cli import design_path_option
 from multiply.util.dirs import create_output_directory, produce_dir
 from multiply.util.parsing import parse_parameters
 from multiply.util.io import load_bed_as_dataframe
@@ -8,6 +7,13 @@ from multiply.download.collection import genome_collection
 from multiply.generate.targets import Target, TargetSet
 from multiply.generate.primer3 import Primer3Runner
 from multiply.generate.primers import Primer, PrimerPair, load_primer_pairs_from_primer3_output
+
+
+
+# ================================================================================
+# Main function wrapped for Click CLI
+#
+# ================================================================================
 
 
 @click.command(short_help="Generate candidate primers.")
@@ -18,8 +24,25 @@ from multiply.generate.primers import Primer, PrimerPair, load_primer_pairs_from
         required=True,
         help="Path to MULTIPLY design file (e.g. 'designs/pf-default.ini').",
     )
-#@design_path_option
 def generate(design):
+    """
+    Generate a pool of candidate primers for a given `design` using
+    primer3
+
+    Visit the `settings/primer3` directory to observe or change primer3 
+    settings.
+
+    """
+    main(design)
+
+
+# ================================================================================
+# Main function, unwrapped
+#
+# ================================================================================
+
+
+def main(design):
     # PARSE CLI
     params = parse_parameters(design)
     genome = genome_collection[params["genome"]]
@@ -141,5 +164,4 @@ def generate(design):
     # if it has a proper start, it needs a chromosome
     # probably want to insert a candidate index column
     primer_df.to_csv(f"{params['output_dir']}/table.candidate_primers.csv", index=False)
-
 

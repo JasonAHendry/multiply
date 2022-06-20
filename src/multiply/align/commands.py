@@ -7,6 +7,12 @@ from multiply.util.dirs import produce_dir
 from .algorithms import PrimerDimerAlgorithm
 
 
+# ================================================================================
+# Main function wrapped for Click CLI
+#
+# ================================================================================
+
+
 @click.command(short_help="Search for primer dimers.")
 @click.option(
     "-p",
@@ -17,16 +23,27 @@ from .algorithms import PrimerDimerAlgorithm
 )
 def align(primer_csv):
     """
-    Run a pairwise alignment algorithm between all candidate primers,
-    scoring the likelihood of them producing a dimer
+    Run a pairwise alignment between all primers in `primer_csv` to identify
+    potential primer dimers
 
     """
+    main(primer_csv)
+
+
+# ================================================================================
+# Main function, unwrapped
+#
+# ================================================================================
+
+
+def main(primer_csv):
     # PARSE CLI
     input_dir = os.path.dirname(primer_csv)
     output_dir = produce_dir(input_dir, "align")
 
     # LOAD DATA
     primer_df = pd.read_csv(primer_csv)
+    primer_df.reset_index(inplace=True, drop=True) # precaution, to ensure ordering
     n_primers = primer_df.shape[0]
 
     # SET MODEL
@@ -35,6 +52,7 @@ def align(primer_csv):
 
     # COMPUTE PAIRWISE
     # - Note how essential ordering is here
+    print("Computing alignments...")
     alignments = []
     pairwise_scores = np.zeros((n_primers, n_primers))
     for i in range(n_primers):
@@ -48,6 +66,7 @@ def align(primer_csv):
             primer2_seq, primer2_name = primer_df.iloc[j][["seq", "primer_name"]]
 
             # Align
+            #print(primer1_name, primer2_name)
             model.set_primers(primer1_seq, primer2_seq, primer1_name, primer2_name)
             model.align()
 
@@ -56,11 +75,27 @@ def align(primer_csv):
             pairwise_scores[i, j] = model.score
             pairwise_scores[j, i] = model.score
 
-    # ADDITIONAL OUTPUTS FOR HIGH-SCORING ALIGNMENTS
-    alignments.sort()
-    alignment_df = pd.DataFrame([a for a in alignments[:100]])
-    alignment_df.to_csv(f"{output_dir}/table.alignment_scores.csv", index=False)
+    # SAVE AS NPY
     np.save(f"{output_dir}/matrix.pairwise_scores.npy", pairwise_scores)
+
+    # SAVE AS CSV
+    pairwise_df = pd.DataFrame(
+        pairwise_scores, 
+        index=primer_df["primer_name"],
+        columns=primer_df["primer_name"]
+    )
+    pairwise_df.to_csv(f"{output_dir}/matrix.pairwise_scores.csv")
+
+    # ADDITIONAL OUTPUTS FOR HIGH-SCORING ALIGNMENTS
+    # Want to actually iterate and print these alignments...
+    SAVE_TOP = 200
+    alignments.sort()
+    alignment_df = pd.DataFrame([a for a in alignments[:SAVE_TOP]])
+    alignment_df.to_csv(f"{output_dir}/table.alignment_scores.csv", index=False)
+    with open(f"{output_dir}/alignment_diagrams.txt", "w") as fn:
+        for ix, a in enumerate(alignments[:SAVE_TOP]):
+            fn.write(f"Alignment Index: {ix:05d}\n")
+            fn.write(f"{a.alignment}\n\n")
 
     # OPTIONALLY -- visualise matrix
     print("Done.")

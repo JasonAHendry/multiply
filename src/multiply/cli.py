@@ -1,32 +1,18 @@
 import click
-
 import logging
-from multiply.download.commands import download
-from multiply.generate.commands import generate
-from multiply.view.commands import view
-from multiply.align.commands import align
-from multiply.blast.commands import blast
-from multiply.select.commands import select
+
+from multiply.util.parsing import parse_parameters
+
+import multiply.download.commands as download
+import multiply.generate.commands as generate
+import multiply.view.commands as view
+import multiply.align.commands as align
+import multiply.blast.commands as blast
+import multiply.select.commands as select
 
 
 # ================================================================
-# Decorators for commonly used options
-#
-# ================================================================
-
-
-def design_path_option(fn):
-    fn = click.option(
-        "-d",
-        "--design",
-        type=str,
-        help="Path to MULTIPLY design file (e.g. 'designs/pf-default.ini').",
-    )(fn)
-    return fn
-
-
-# ================================================================
-# Entry point for all commands
+# Entry point for all sub-commands
 #
 # ================================================================
 
@@ -36,7 +22,10 @@ def design_path_option(fn):
 @click.group()
 def cli():
     """
-    MULTIPLY: Design multiplex PCRs in silico
+    Design multiplex PCRs in silico
+
+    Run `multiply pipeline -d <designs/design-file.ini>` to run the
+    fully multiply pipeline.
 
     """
     # Prepare logger
@@ -47,12 +36,54 @@ def cli():
     
     pass
 
-cli.add_command(download)
-cli.add_command(generate)
-cli.add_command(view)
-cli.add_command(align)
-cli.add_command(blast)
-cli.add_command(select)
+
+# ================================================================
+# Individual sub-commands
+#
+# ================================================================
+
+
+cli.add_command(download.download)
+cli.add_command(generate.generate)
+cli.add_command(view.view)
+cli.add_command(align.align)
+cli.add_command(blast.blast)
+cli.add_command(select.select)
+
+
+# ================================================================
+# Run as a pipeline
+#
+# ================================================================
+
+
+@click.command(short_help="Run the full multiply pipeline.")
+@click.option(
+        "-d",
+        "--design",
+        type=str,
+        required=True,
+        help="Path to MULTIPLY design file (e.g. 'designs/pf-default.ini').",
+    )
+def pipeline(design):
+    """
+    Run the complete `multiply` pipeline
+    
+    """
+    # PARSE INPUT PARAMETERS
+    params = parse_parameters(design)
+    primer_csv = f"{params['output_dir']}/table.candidate_primers.csv"
+
+    # Pipeline
+    generate.main(design=design)
+    view.main(result_dir=params['output_dir'], genome_name=params['genome'])
+    align.main(primer_csv=primer_csv)
+    blast.main(primer_csv=primer_csv, genome_name=params['genome'])
+    select.main(result_dir=params['output_dir'])
+
+
+cli.add_command(pipeline)
+
 
 if __name__ == "__main__":
     cli()

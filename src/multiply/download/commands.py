@@ -1,8 +1,14 @@
 from turtle import down
 import click
-from multiply.download.collection import genome_collection #, display_collection
+from multiply.download.collection import genome_collection
 from multiply.download.gff import gff_standardisation_functions
 from multiply.download.downloaders import GenomeDownloader
+
+
+# ================================================================================
+# Main function wrapped for Click CLI
+#
+# ================================================================================
 
 
 @click.command(short_help="Download genome information.")
@@ -17,14 +23,23 @@ from multiply.download.downloaders import GenomeDownloader
 )
 def download(available, all, genome_name):
     """
-    Utilities to download genome information for MULTIPLY
+    Download genome information for a given `genome_name`
 
     This includes genome sequences (.fasta) and information
     about gene locations (.gff). Diversity information
     must be prepared separately.
 
     """
+    main(available, all, genome_name)
+
+
+# ================================================================================
+# Main function, unwrapped
+#
+# ================================================================================
     
+
+def main(available, all, genome_name):
     if available:
         genome_collection.display()
         return
