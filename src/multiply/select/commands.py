@@ -95,23 +95,26 @@ def main(result_dir):
     # Reduce to unique and sort
     final_multiplexes = sorted(set(multiplexes))
 
-    # Create a joint dataframe, and save
-    dfs = []
-    final_columns = primer_df.columns.tolist()
-    for ix in range(3):
-        column_name = f"in_multiplex{ix+1:02d}"
-        df = primer_df.loc[final_multiplexes[ix].get_primer_names()]
-        df.insert(df.shape[1], column_name, True)
-        dfs.append(df)
-        final_columns.insert(4 + ix, column_name)
-    top_multiplex_df = (
+    # Create a summary data frame
+    N_SELECT = 3
+    dfs = [
+        primer_df.loc[final_multiplexes[ix].get_primer_names()]
+        for ix in range(N_SELECT)
+    ]
+    top_multiplexes = (
         pd.concat(dfs)
         .reset_index(drop=True)
         .fillna(False)
         .drop_duplicates("primer_name")
         .sort_values("primer_name")
-    )[final_columns]
-    top_multiplex_df.to_csv(f"{output_dir}/table.multiplexes_overview.csv")
+    )
+    for ix in range(N_SELECT):
+        top_multiplexes.insert(
+            ix+4, 
+            f"in_multiplex{ix:02d}", 
+            [p in final_multiplexes[ix].primer_pairs 
+            for p in top_multiplexes["pair_name"]])
+    top_multiplexes.to_csv(f"{output_dir}/table.multiplexes_overview.csv")
 
     # Sketch of OO for future
     # output_formatter = MultiplexFormatter(primer_df, multiplexes)
