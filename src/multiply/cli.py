@@ -6,6 +6,7 @@ from multiply.generate.commands import generate
 from multiply.view.commands import view
 from multiply.align.commands import align
 from multiply.blast.commands import blast
+from multiply.select.commands import select
 
 
 # ================================================================
@@ -51,6 +52,7 @@ cli.add_command(generate)
 cli.add_command(view)
 cli.add_command(align)
 cli.add_command(blast)
+cli.add_command(select)
 
 if __name__ == "__main__":
     cli()
