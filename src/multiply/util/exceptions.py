@@ -13,3 +13,7 @@ class TargetSizeError(Exception):
 class TargetPositionError(Exception):
     """ Error in the position of targets, i.e. some overlap """
     pass
+
+class NoPrimerNameException(Exception):
+    """ Raised when the `primer_name` column is missing """
+    pass

@@ -1,42 +1,28 @@
-import numpy as np
 import pandas as pd
-
-# TODO:
-# - Remove `primer_names`, but be more strict about `primer_values` data
-#  - e.g. it should be a pandas series or data frame, where the index is the primer name
+import numpy as np
 
 
 class IndividualCosts:
-    def __init__(self, cost_name, primer_names, primer_values, weight):
-        """
-        Encapsulate primer cost information for *individual* primers
+    def __init__(self, cost_name, primer_values, weight):
 
-        The class handles collapsing per primer costs (e.g. CRT1_v1_F) to
-        per primer pair costs (e.g. CRT1_v1), and then normalising and
-        weighting the collapsed values.
+        # Sanity check
+        self._check_primer_values(primer_values)
 
-        TODO:
-        - Careful defensive programming -- this is a key class
-
-        params
-            cost_name: str
-                Name of the primer costs.
-            primer_names: list, str, shape(n_primers,)
-                Names of the individual primers (e.g. CRT1_v1_F).
-            primer_values: list, float, shape(n_primers,)
-                Input values associated with each primer.
-            weight: float
-                Value by which to multiply resulting costs.
-
-        """
-
+        # Assigned at instantiation
         self.cost_name = cost_name
-        self.primer_names = primer_names
         self.primer_values = primer_values
         self.weight = weight
 
-        self.primer_pair_values = None
-        self.primer_pair_costs = None
+        # To be assigned
+        self.primer_pair_values = None  # Raw values
+        self.primer_pair_costs = None  # Post-normalisation
+
+    @staticmethod
+    def _check_primer_values(primer_values):
+        assert isinstance(primer_values, pd.Series), \
+        "`primer_values` must be a pandas series."
+        assert all([p.endswith("_F") or p.endswith("_R") for p in primer_values.index]), \
+        "`primer_values` index must be primer names."
 
     def collapse_to_per_pair(self, collapse_func=sum):
         """
@@ -49,7 +35,7 @@ class IndividualCosts:
         # Build into data frame
         pair_df = pd.DataFrame(
             {
-                "primer_pair_name": [n[:-2] for n in self.primer_names],
+                "primer_pair_name": [n[:-2] for n in self.primer_values.index],
                 "primer_pair_values": self.primer_values,
             }
         )
@@ -77,39 +63,53 @@ class IndividualCosts:
 
         return self
 
-    def __repr__(self):
-        return (
-            f"IndividualCosts(cost_name={self.cost_name}, "
-            f"weight={self.weight}, "
-            f"primer_names={','.join(self.primer_names.values[:3])}..., "
-            f"primer_values={','.join([str(v) for v in self.primer_values.values[:3]])}...)"
-        )
-
 
 class PairwiseCosts:
-    def __init__(self, cost_name, primer_names, primer_values, weight):
-        """
-        Create a pairwise costs
+    def __init__(self, cost_name, primer_values, weight):
 
-        """
+        # Sanity check
+        self._check_primer_values(primer_values)
 
+        # Assigned at instantiation
         self.cost_name = cost_name
-        self.primer_names = primer_names
         self.primer_values = primer_values
         self.weight = weight
 
+        # To be assigned
         self.primer_pair_values = None
         self.primer_pair_costs = None
 
+    @staticmethod
+    def _check_primer_values(primer_values):
+        """
+        Input data structure `primer_values` is quite specific,
+        namely it is a square pandas dataframe with an index
+        and column giving the primer names
+
+        Check that these conditions are met here.
+
+        """
+        assert isinstance(primer_values, pd.DataFrame), \
+        "`primer_values` must be a pandas DataFrame."
+        assert primer_values.shape[0] == primer_values.shape[1], \
+        "`primer_values` is a pairwise matrix oof primers, it should be square."
+        assert all([p.endswith("_F") or p.endswith("_R") for p in primer_values.index]), \
+        "`primer_values` index must be primer names."
+        assert all(primer_values.index == primer_values.columns), \
+        "`primer_values` index and column names must be the same."
+
     def collapse_to_per_pair(self, collapse_func=sum):
         """
-        Collapse to per pair
+        Collapse from a dataframe where each column and row
+        corresponds to an individual primer, to a dataframe
+        where they correspond to an individual primer pair
 
-        Form of collapse func has some restrictions here
+        Note that the way that I achieve this below (in two steps)
+        imposes some restrictions on the `collapse_func`.
 
         """
 
-        primer_pair_name = [n[:-2] for n in self.primer_names]
+        primer_pair_name = [n[:-2] for n in self.primer_values.columns]
 
         # Add pair name column
         collapse_df = self.primer_values.copy()
@@ -130,7 +130,7 @@ class PairwiseCosts:
 
     def normalise_costs(self):
         """
-        Iclude re-weighting here, for simplicity
+        Normalise to Z-scores and then multiply by weight
 
         """
         if self.primer_pair_values is None:
@@ -141,3 +141,5 @@ class PairwiseCosts:
         mu = arr.mean()
         std = arr.std()
         self.primer_pair_costs = self.weight * (self.primer_pair_values - mu) / std
+
+        return self

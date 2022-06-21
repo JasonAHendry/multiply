@@ -1,9 +1,15 @@
 import click
 import pandas as pd
 from multiply.util.dirs import produce_dir
-from .costs import IndividualCosts, PairwiseCosts
-from .cost_functions import LinearCost
+from .cost.factories import IndividualCostFactory, PairwiseCostFactory
+from .cost.functions import LinearCost
 from .selectors import GreedySearch
+
+
+# PARAMETERS
+INDV_INI_PATH = "settings/select/individual_costs.ini"
+PAIR_INI_PATH = "settings/select/pairwise_costs.ini"
+N_SELECT = 3
 
 
 # ================================================================================
@@ -43,45 +49,26 @@ def select(result_dir):
 def main(result_dir):
     # PARSE CLI
     output_dir = produce_dir(result_dir, "select")
-
-    # LOAD DATA
-    # Primer data
     primer_df = pd.read_csv(f"{result_dir}/table.candidate_primers.csv")
     primer_df.index = primer_df["primer_name"]
 
-    # Blast data
-    blast_df = pd.read_csv(
-        f"{result_dir}/blast/table.blast.candidate_primers.summary.csv"
-    )
-
-    # Primer-dimer data
-    align_df = pd.read_csv(
-        f"{result_dir}/align/matrix.pairwise_scores.csv", index_col=0
-    )
-
-    # CONSTRUCT INDIVIDUAL COSTS
+    # CREATE INDIVIDUAL COSTS
+    indv_factory = IndividualCostFactory(INDV_INI_PATH, result_dir)
     indv_costs = [
-        IndividualCosts(
-            "blast", blast_df["primer_name"], blast_df["predicted_bound"], weight=1.0
-        ),
-        IndividualCosts(
-            "primer3", primer_df["primer_name"], primer_df["pair_penalty"], weight=1.0
-        ),
+        indv_cost
+        .collapse_to_per_pair()
+        .normalise_costs()
+        for indv_cost in indv_factory.get_individual_costs()
     ]
-    # Normalise
-    for indv_cost in indv_costs:
-        indv_cost.collapse_to_per_pair(collapse_func=sum)
-        indv_cost.normalise_costs()
 
-    # CONSTRUCT PAIRWISE COSTS
-    # NB: Weight is negative, because we want to *maximise* the dimer score
+    # CREATE PAIRWISE COSTS
+    pairwise_factory = PairwiseCostFactory(PAIR_INI_PATH, result_dir)
     pairwise_costs = [
-        PairwiseCosts("dimer", align_df.columns, align_df, weight=-1.0),
+        pair_cost
+        .collapse_to_per_pair()
+        .normalise_costs()
+        for pair_cost in pairwise_factory.get_pairwise_costs()
     ]
-    # Normalise
-    for pairwise_cost in pairwise_costs:
-        pairwise_cost.collapse_to_per_pair(collapse_func=sum)
-        pairwise_cost.normalise_costs()
 
     # SET COST FUNCTION
     cost_function = LinearCost(indv_costs=indv_costs, pairwise_costs=pairwise_costs)
@@ -96,7 +83,6 @@ def main(result_dir):
     final_multiplexes = sorted(set(multiplexes))
 
     # Create a summary data frame
-    N_SELECT = 3
     dfs = [
         primer_df.loc[final_multiplexes[ix].get_primer_names()]
         for ix in range(N_SELECT)
