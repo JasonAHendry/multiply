@@ -1,4 +1,3 @@
-from turtle import down
 import click
 from multiply.download.collection import genome_collection
 from multiply.download.gff import gff_standardisation_functions
