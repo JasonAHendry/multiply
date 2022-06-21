@@ -1,0 +1,4 @@
+{
+    "GLOBAL": "genomes/variation/PlasmodiumFalciparum/pf6.filtered_snps.GLOBAL.bed",
+    "CAF": "genomes/variation/PlasmodiumFalciparum/pf6.filtered_snps.CAF.bed"
+}

@@ -1,8 +1,8 @@
 !.gitignore
 !collection.ini
-information/
+./information
 !information/.gitignore
-variation/
+./variation
 !variation/PlasmodiumFalciparum/
 
 
