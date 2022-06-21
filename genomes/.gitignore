@@ -1,9 +1,9 @@
 !.gitignore
 !collection.ini
-information/*
+information/
 !information/.gitignore
-variation/*
-!variation/PlasmodiumFalciparum/*.bed
+variation/
+!variation/PlasmodiumFalciparum/
 
 
 
