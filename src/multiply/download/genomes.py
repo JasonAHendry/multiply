@@ -23,7 +23,7 @@ class Genome:
     gff_raw_download: str = ""
     gff_path: str = ""
 
-    variation_dir: str = ""
+    include_variation: str = ""
 
 
 # ================================================================================
@@ -86,7 +86,7 @@ class PlasmoDBFactory(GenomeFactory):
             gff_url=gff_url,
             gff_raw_download=gff_raw_download,
             gff_path=gff_path,
-            variation_dir=include_variation if include_variation is not None else "",
+            include_variation=include_variation if include_variation is not None else "",
         )
 
         return genome
@@ -135,7 +135,7 @@ class EnsemblGenomesFactory(GenomeFactory):
             gff_url=gff_url,
             gff_raw_download=gff_raw_download,
             gff_path=gff_path,
-            variation_dir=include_variation if include_variation is not None else "",
+            include_variation=include_variation if include_variation is not None else "",
         )
 
         return genome
