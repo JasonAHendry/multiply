@@ -6,9 +6,11 @@ from multiply.util.parsing import parse_parameters
 import multiply.download.commands as download
 import multiply.generate.commands as generate
 import multiply.view.commands as view
+import multiply.snpcheck.commands as snpcheck
 import multiply.align.commands as align
 import multiply.blast.commands as blast
 import multiply.select.commands as select
+
 
 
 # ================================================================
@@ -46,9 +48,11 @@ def cli():
 cli.add_command(download.download)
 cli.add_command(generate.generate)
 cli.add_command(view.view)
+cli.add_command(snpcheck.snpcheck)
 cli.add_command(align.align)
 cli.add_command(blast.blast)
 cli.add_command(select.select)
+
 
 
 # ================================================================
@@ -77,6 +81,7 @@ def pipeline(design):
     # Pipeline
     generate.main(design=design)
     view.main(result_dir=params['output_dir'], genome_name=params['genome'])
+    snpcheck.main(primer_csv=primer_csv, genome_name=params['genome'])
     align.main(primer_csv=primer_csv)
     blast.main(primer_csv=primer_csv, genome_name=params['genome'])
     select.main(result_dir=params['output_dir'])
