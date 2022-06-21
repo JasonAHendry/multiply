@@ -1,11 +1,11 @@
-<p align="center"><img src="images/multiply-logo.png" width="500"></p>
+<p align="center"><img src=".images/multiply-logo.png" width="500"></p>
 
 <p align="center">Multiplex PCR design, <i>in silico</i></p>
 
 ## Overview
-`multiply` facilitates the design of optimised and reporducible multiplex PCR. The diagram below summarises the `multiply` pipeline:
+`multiply` facilitates the design of optimised and reporducible multiplex PCRs. The diagram below summarises the `multiply` pipeline:
 <br></br>
-<p align="center"><img src="images/multiply-pipeline.png" width="600"></p>
+<p align="center"><img src=".images/multiply-pipeline.png" width="600"></p>
 
 ## Install
 `multiply` has several software dependencies which can be installed using conda:
