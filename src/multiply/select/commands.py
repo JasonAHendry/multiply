@@ -1,6 +1,7 @@
 import click
 import pandas as pd
 from multiply.util.dirs import produce_dir
+from multiply.util.printing import print_header, print_footer
 from .cost.factories import IndividualCostFactory, PairwiseCostFactory
 from .cost.functions import LinearCost
 from .selectors import GreedySearch
@@ -48,11 +49,18 @@ def select(result_dir):
 
 def main(result_dir):
     # PARSE CLI
+    t0 = print_header()
+    print("Parsing inputs...")
     output_dir = produce_dir(result_dir, "select")
     primer_df = pd.read_csv(f"{result_dir}/table.candidate_primers.csv")
     primer_df.index = primer_df["primer_name"]
+    print(f"  Results directory: {result_dir}")
+    print(f"  Primer CSV: {result_dir}/table.candidate_primers.csv")
+    print(f"  Output directory: {output_dir}")
+    print("Done.\n")
 
     # CREATE INDIVIDUAL COSTS
+    print("Preparing inputs to cost function...")
     indv_factory = IndividualCostFactory(INDV_INI_PATH, result_dir)
     indv_costs = [
         indv_cost
@@ -60,6 +68,7 @@ def main(result_dir):
         .normalise_costs()
         for indv_cost in indv_factory.get_individual_costs()
     ]
+    print(f"  Individual costs: {' ,'.join([i.cost_name for i in indv_costs])}")
 
     # CREATE PAIRWISE COSTS
     pairwise_factory = PairwiseCostFactory(PAIR_INI_PATH, result_dir)
@@ -69,16 +78,22 @@ def main(result_dir):
         .normalise_costs()
         for pair_cost in pairwise_factory.get_pairwise_costs()
     ]
+    print(f"  Pairwise costs: {' ,'.join([i.cost_name for i in indv_costs])}")
 
     # SET COST FUNCTION
+    print("Building cost function...")
     cost_function = LinearCost(indv_costs=indv_costs, pairwise_costs=pairwise_costs)
     cost_function.combine_costs()
+    print("Done.\n")
 
     # SET SELECTION ALGORITHM
+    print(f"Seaching for top {N_SELECT} optimal multiplexes...")
+    print(f"  Search algorithm: Greedy")
     selector = GreedySearch(primer_df, cost_function)
     multiplexes = selector.run()
 
     # FORMAT OUTPUTS
+    print("Writing output...")
     # Reduce to unique and sort
     final_multiplexes = sorted(set(multiplexes))
 
@@ -100,7 +115,12 @@ def main(result_dir):
             f"in_multiplex{ix:02d}", 
             [p in final_multiplexes[ix].primer_pairs 
             for p in top_multiplexes["pair_name"]])
-    top_multiplexes.to_csv(f"{output_dir}/table.multiplexes_overview.csv")
+    overview_csv = f"{output_dir}/table.multiplexes_overview.csv"
+    top_multiplexes.to_csv(overview_csv)
+    print(f"  to: {overview_csv}")
+    print("Done.\n")
+
+    print_footer(t0)
 
     # Sketch of OO for future
     # output_formatter = MultiplexFormatter(primer_df, multiplexes)

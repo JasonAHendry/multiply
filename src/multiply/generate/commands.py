@@ -1,7 +1,9 @@
 import click
 import pandas as pd
-from multiply.util.dirs import create_output_directory, produce_dir
+
+from multiply.util.printing import print_header, print_footer, print_parameters
 from multiply.util.parsing import parse_parameters
+from multiply.util.dirs import create_output_directory, produce_dir
 from multiply.util.io import load_bed_as_dataframe
 from multiply.download.collection import genome_collection
 from multiply.generate.targets import Target, TargetSet
@@ -44,13 +46,14 @@ def generate(design):
 
 def main(design):
     # PARSE CLI
+    t0 = print_header()
     params = parse_parameters(design)
     genome = genome_collection[params["genome"]]
-
-    # CREATE OUTPUT DIRECTORY
     params["output_dir"] = create_output_directory(params)
+    print_parameters(design, params)
 
     # EXTRACT GENE INFORMATION
+    print("Preparing targets...")
     genes = []
     if params["from_genes"]:
         gene_df = pd.read_csv(genome.gff_path)
@@ -62,18 +65,17 @@ def main(design):
         if params["has_names"]:
             for gene in genes:
                 gene.name = params["target_id_to_name"][gene.ID]
+    print(f"  Found {len(genes)} gene(s).")
         
-
     # EXTRACT REGION INFORMATION
     regions = []
     if params["from_regions"]:
         region_df = load_bed_as_dataframe(params["region_bed"])
-        # region_df = pd.read_csv(
-        #     params["region_bed"], sep="\t", names=["seqname", "start", "end", "ID"]
-        # )
         regions = [Target.from_series(row) for _, row in region_df.iterrows()]
+    print(f"  Found {len(regions)} region(s).")
 
     # MERGE
+    print("  Merging genes and regions...")
     targets = genes + regions
     target_set = (
         TargetSet(targets)
@@ -83,8 +85,10 @@ def main(design):
         .to_csv(f"{params['output_dir']}/table.targets_overview.csv")
         .to_fasta(f"{params['output_dir']}/targets_sequence.fasta")
     )
+    print("Done.\n")
 
     # RUN PRIMER3
+    print("Running primer3...")
     primer3_output_dir = produce_dir(params["output_dir"], "primer3")
     primer3_runner = Primer3Runner()
     
@@ -93,6 +97,7 @@ def main(design):
 
     # Iterate over settings
     for primer3_setting in params["primer3_settings"]:
+        print(f"  Generating primers using {primer3_setting} settings...")
 
         primer3_runner.load_primer3_settings(primer3_setting)
         primer3_runner.set_amplicon_size_ranges(
@@ -110,19 +115,17 @@ def main(design):
             )
             primer3_runner.run(output_dir=primer3_output_dir)
 
-            # UP TO HERE I THINK EVERYTHING IS GOOD
-
             # Store
             primer_pairs = load_primer_pairs_from_primer3_output(
                 primer3_runner.output_path,
                 add_target=target
             )
-
             primer_pair_dt[target.ID].extend(primer_pairs)
+    print("Done.\n")
 
     # REDUCE TO UNIQUE PAIRS
     print("Primer pairs discovered by primer3:")
-    print(f"{'Target':<15} {'Total':<10} {'Unique':<10}")
+    print(f"  {'Target':<15} {'Total':<10} {'Unique':<10}")
     for target_id, all_primer_pairs in primer_pair_dt.items():
 
         # Reduce to unique primer pairs, and give names
@@ -135,22 +138,23 @@ def main(design):
             )
 
         # Print summary
-        print(f"{target_id:<15} {len(all_primer_pairs):<10} {len(uniq_primer_pairs):<10}")
+        print(f"  {target_id:<15} {len(all_primer_pairs):<10} {len(uniq_primer_pairs):<10}")
 
         # Store
         primer_pair_dt[target_id] = uniq_primer_pairs
-    print("Done.")
-    print("")
+    print("Done.\n")
 
     # Add tails, if provided
     if params["include_tails"]:
-        # TODO: incapsulate below
+        print("Adding tails to discovered primers...")
         for target_id, primer_pairs in primer_pair_dt.items():
             for primer_pair in primer_pairs:
                 primer_pair.F.add_tail(params["F_tail"])
                 primer_pair.R.add_tail(params["R_tail"])
+        print("Done.\n")
 
     # WRITE
+    print("Writing output table...")
     primer_df = pd.DataFrame([
         pair.get_primer_as_dict(direction)
         for _, primer_pairs in primer_pair_dt.items()
@@ -161,7 +165,10 @@ def main(design):
         ["target_id", "target_name", "pair_name", "primer_name", "direction", 
         "seq", "length", "tm", "gc", "chrom", "start", "product_bp", "pair_penalty"]
     ]
-    # if it has a proper start, it needs a chromosome
-    # probably want to insert a candidate index column
-    primer_df.to_csv(f"{params['output_dir']}/table.candidate_primers.csv", index=False)
+    output_csv = f"{params['output_dir']}/table.candidate_primers.csv"
+    primer_df.to_csv(output_csv, index=False)
+    print(f"  to: {output_csv}")
+    print("Done.\n")
+
+    print_footer(t0)
 

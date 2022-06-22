@@ -1,6 +1,6 @@
+import sys
 import random
 from abc import ABC, abstractmethod
-
 from .multiplex import Multiplex
 
 
@@ -55,8 +55,9 @@ class GreedySearch(MultiplexSelector):
 
         # Iterate
         multiplexes = []
+        sys.stdout.write(f"  Iterations complete: {0}/{self.N}")
         for ix in range(self.N):
-
+            
             # Prepare empty new multiplex
             multiplex = []
 
@@ -77,9 +78,11 @@ class GreedySearch(MultiplexSelector):
             # Add to list of all multiplexes
             multiplexes.append(Multiplex(cost=min(costs), primer_pairs=multiplex))
 
-            # Print output
-            if ix % 10 == 0:
-                print(ix)
+            # Print
+            sys.stdout.write("\r")
+            sys.stdout.flush()
+            sys.stdout.write(f"  Iterations complete: {ix+1}/{self.N}")
+        print("\nDone.\n")
 
         return multiplexes
 

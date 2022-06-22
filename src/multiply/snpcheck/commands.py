@@ -5,6 +5,7 @@ import json
 import pandas as pd
 from functools import partial, reduce
 
+from multiply.util.printing import print_header, print_footer
 from multiply.util.dirs import produce_dir
 from multiply.util.io import write_primers_to_bed
 from multiply.download.collection import genome_collection
@@ -52,6 +53,7 @@ def snpcheck(primer_csv, genome_name):
 
 def main(primer_csv, genome_name):
     # PARSE CLI
+    t0 = print_header()
     input_dir = os.path.dirname(primer_csv)
     output_dir = produce_dir(input_dir, "snpcheck")
     genome = genome_collection[genome_name]
@@ -121,3 +123,4 @@ def main(primer_csv, genome_name):
     merged_df.to_csv(output_path, index=False)
     print("Done.")
     print("")
+    print_footer(t0)
