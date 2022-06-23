@@ -1,5 +1,6 @@
 import sys
 import random
+from itertools import product
 from abc import ABC, abstractmethod
 from .multiplex import Multiplex
 
@@ -36,7 +37,7 @@ class GreedySearch(MultiplexSelector):
 
     """
 
-    N = 50
+    N = 1000
 
     def run(self):
         """
@@ -44,9 +45,10 @@ class GreedySearch(MultiplexSelector):
 
         """
 
-        # Get target pairs
+        # Get every UNIQUE primer pair, for each target
+        # NB: from `primer_df` these are doubled, must use set()
         target_pairs = {
-            target_id: target_df["pair_name"].tolist()
+            target_id: list(set(target_df["pair_name"]))
             for target_id, target_df in self.primer_df.groupby("target_id")
         }
 
@@ -88,18 +90,29 @@ class GreedySearch(MultiplexSelector):
 
 
 class BruteForce(MultiplexSelector):
-    pass
+
+    def run(self):
+        """
+        Note that we definitely don't want to store everything here;
+        only the number we want to select;
+
+        a little bit of book keeping to only store if cost is
+        less than highest score in top N
+        
+        """
+        #for multiplex in product(*[v for k, v in target_pairs.items()]):
+        pass
 
 
 class RandomSearch(MultiplexSelector):
 
-    N = 50
+    N = 1000
 
     def run(self):
         """Run the random  selection algorithm"""
         # Get target pairs
         target_pairs = {
-            target_id: target_df["pair_name"].tolist()
+            target_id: list(set(target_df["pair_name"]))
             for target_id, target_df in self.primer_df.groupby("target_id")
         }
 
