@@ -57,7 +57,7 @@ class GreedySearch(MultiplexSelector):
         multiplexes = []
         sys.stdout.write(f"  Iterations complete: {0}/{self.N}")
         for ix in range(self.N):
-            
+
             # Prepare empty new multiplex
             multiplex = []
 
@@ -91,5 +91,36 @@ class BruteForce(MultiplexSelector):
     pass
 
 
-class SelectRandom(MultiplexSelector):
-    pass
+class RandomSearch(MultiplexSelector):
+
+    N = 50
+
+    def run(self):
+        """Run the random  selection algorithm"""
+        # Get target pairs
+        target_pairs = {
+            target_id: target_df["pair_name"].tolist()
+            for target_id, target_df in self.primer_df.groupby("target_id")
+        }
+
+        # Iterate
+        multiplexes = []
+        sys.stdout.write(f"  Iterations complete: {0}/{self.N}")
+        for ix in range(self.N):
+
+            # Randomly generate a multiplex
+            multiplex = [random.choice(pairs) for _, pairs in target_pairs.items()]
+
+            # Compute the cost
+            cost = self.cost_function.calc_cost(multiplex)
+
+            # Store
+            multiplexes.append(Multiplex(cost=cost, primer_pairs=multiplex))
+
+            # Print
+            sys.stdout.write("\r")
+            sys.stdout.flush()
+            sys.stdout.write(f"  Iterations complete: {ix+1}/{self.N}")
+        print("\nDone.\n")
+
+        return multiplexes
