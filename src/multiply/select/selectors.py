@@ -1,6 +1,7 @@
 import sys
 import random
 from itertools import product
+from functools import reduce
 from abc import ABC, abstractmethod
 from .multiplex import Multiplex
 
@@ -35,11 +36,17 @@ class GreedySearch(MultiplexSelector):
     """
     Try to find the optimal multiplex using a greedy search algorithm
 
+    Note, that it would be possible to compute exhaustively
+    the number of possible permutations through the greedy algorithm;
+
+    Alternatively; I could create a unique set of orders *instead*
+    of shuffling; depending on the ratio of the number of iterations
+    to the number of permutations, this would remove some redundant
+    calculation
+
     """
 
-    N = 1000
-
-    def run(self):
+    def run(self, N=10_000):
         """
         This runs but it seems to be insanely slow, even for an 8plex
 
@@ -57,8 +64,8 @@ class GreedySearch(MultiplexSelector):
 
         # Iterate
         multiplexes = []
-        sys.stdout.write(f"  Iterations complete: {0}/{self.N}")
-        for ix in range(self.N):
+        sys.stdout.write(f"  Iterations complete: {0}/{N}")
+        for ix in range(N):
 
             # Prepare empty new multiplex
             multiplex = []
@@ -83,32 +90,70 @@ class GreedySearch(MultiplexSelector):
             # Print
             sys.stdout.write("\r")
             sys.stdout.flush()
-            sys.stdout.write(f"  Iterations complete: {ix+1}/{self.N}")
+            sys.stdout.write(f"  Iterations complete: {ix+1}/{N}")
         print("\nDone.\n")
 
         return multiplexes
 
 
 class BruteForce(MultiplexSelector):
-
-    def run(self):
+    def run(self, store_maximum=200):
         """
-        Note that we definitely don't want to store everything here;
-        only the number we want to select;
+        Run a brute force search for the highest scoring multiplex
 
-        a little bit of book keeping to only store if cost is
-        less than highest score in top N
-        
+        Note, we control the maximum number of multiplexes stored
+        using the `store_maximum` argument; otherwise we can get
+        exceptionally long lists of multiplexes
+
         """
-        #for multiplex in product(*[v for k, v in target_pairs.items()]):
-        pass
+        # Split target pairs into list of sets
+        target_pairs = [
+            set(target_df["pair_name"])
+            for _, target_df in self.primer_df.groupby("target_id")
+        ]
+
+        # Compute number of iterations required
+        total_N = reduce(lambda a, b: a * b, [len(t) for t in target_pairs])
+        print(
+            f"Found {int(self.primer_df.shape[0]/2)} primer pairs across {len(target_pairs)} targets."
+        )
+        print(f"A total of {total_N} possible multiplexes exist.")
+
+        # Iterate over all possible multiplexes
+        sys.stdout.write(f"  Iterations complete: {0}/{total_N}")
+        stored_multiplexes = []
+        stored_costs = []
+        for ix, primer_pairs in enumerate(product(*target_pairs)):
+
+            # Create the multiplex
+            multiplex = Multiplex(
+                primer_pairs=primer_pairs,
+                cost=self.cost_function.calc_cost(primer_pairs),
+            )
+
+            # Store
+            if len(stored_multiplexes) < store_maximum:
+                stored_multiplexes.append(multiplex)
+                stored_costs.append(multiplex.cost)
+                highest_stored_cost = max(stored_costs)
+            elif multiplex.cost < highest_stored_cost:
+                stored_multiplexes.insert(
+                    stored_costs.index(highest_stored_cost), multiplex
+                )
+
+            # Print
+            if ix % 10 == 0:  # slow rate a bit
+                sys.stdout.write("\r")
+                sys.stdout.flush()
+                sys.stdout.write(f"  Iterations complete: {ix+1}/{total_N}")
+
+        print("\nDone.\n")
+
+        return stored_multiplexes
 
 
 class RandomSearch(MultiplexSelector):
-
-    N = 1000
-
-    def run(self):
+    def run(self, N=10_000):
         """Run the random  selection algorithm"""
         # Get target pairs
         target_pairs = {
@@ -118,8 +163,8 @@ class RandomSearch(MultiplexSelector):
 
         # Iterate
         multiplexes = []
-        sys.stdout.write(f"  Iterations complete: {0}/{self.N}")
-        for ix in range(self.N):
+        sys.stdout.write(f"  Iterations complete: {0}/{N}")
+        for ix in range(N):
 
             # Randomly generate a multiplex
             multiplex = [random.choice(pairs) for _, pairs in target_pairs.items()]
@@ -133,7 +178,20 @@ class RandomSearch(MultiplexSelector):
             # Print
             sys.stdout.write("\r")
             sys.stdout.flush()
-            sys.stdout.write(f"  Iterations complete: {ix+1}/{self.N}")
+            sys.stdout.write(f"  Iterations complete: {ix+1}/{N}")
         print("\nDone.\n")
 
         return multiplexes
+
+
+# ================================================================================
+# Collection of selection algorithms
+#
+# ================================================================================
+
+
+selector_collection = {
+    "Greedy": GreedySearch,
+    "Random": RandomSearch,
+    "BruteForce": BruteForce,
+}
