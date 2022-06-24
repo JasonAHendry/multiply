@@ -68,7 +68,7 @@ class SequencePlotter:
         ax.set_ylabel("Homopolymer \nLength (bp)", color=HP_COL)
 
         # Limits
-        ax.set_ylim((0, ax.get_ylim()[1]))
+        ax.set_ylim((1, ax.get_ylim()[1]))
         ax.set_xlim(start, end)
 
         # GC
@@ -219,12 +219,12 @@ class PrimerPlotter:
             R_end = R_start - R_row["length"]
 
             # Forward
-            ax.plot([F_start, F_end], [ix, ix], lw=4, color=self.col_dt[pair_name])
-            ax.scatter(x=F_end, y=ix, marker=9, s=30, color=self.col_dt[pair_name])
+            ax.plot([F_start, F_end], [ix, ix], lw=2.5, color=self.col_dt[pair_name])
+            ax.scatter(x=F_end, y=ix, marker=9, s=15, color=self.col_dt[pair_name])
 
             # Reverse
-            ax.plot([R_start, R_end], [ix, ix], lw=4, color=self.col_dt[pair_name])
-            ax.scatter(x=R_end, y=ix, marker=8, s=30, color=self.col_dt[pair_name])
+            ax.plot([R_start, R_end], [ix, ix], lw=2.5, color=self.col_dt[pair_name])
+            ax.scatter(x=R_end, y=ix, marker=8, s=15, color=self.col_dt[pair_name])
 
             # Amplicon
             ax.plot([F_start, R_start], [ix, ix], color=self.col_dt[pair_name])
