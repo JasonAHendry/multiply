@@ -78,7 +78,7 @@ def main(result_dir):
         .normalise_costs()
         for pair_cost in pairwise_factory.get_pairwise_costs()
     ]
-    print(f"  Pairwise costs: {', '.join([i.cost_name for i in indv_costs])}")
+    print(f"  Pairwise costs: {', '.join([i.cost_name for i in pairwise_costs])}")
 
     # SET COST FUNCTION
     print("Building cost function...")
