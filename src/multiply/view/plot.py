@@ -46,7 +46,7 @@ class SequencePlotter:
 
         # Labels
         ax.set_xlabel("Position (bp)")
-        ax.label_outer()
+        #ax.label_outer()
 
         return None
 
@@ -127,35 +127,56 @@ class GffPlotter:
 
     def plot_gff_features(self, ax):
         """Plot features of gff in this region"""
+        
+        PLUS_STRAND_Y = 3/4
+        NEG_STRAND_Y = 1/4
 
         # Plot features
         for _, row in self.plot_gff.iterrows():
 
             # Define color and size from feature
             if row["feature"] == "protein_coding_gene":
-                lw = 4
+                lw = 3
                 color = "darkgrey"
             elif row["feature"] == "CDS":
-                lw = 10
+                lw = 8
                 color = "teal"
 
             # Define y position from strand
             if row["strand"] == "+":
-                ypos = 2 / 3
+                ypos = PLUS_STRAND_Y
             elif row["strand"] == "-":
-                ypos = 1 / 3
+                ypos = NEG_STRAND_Y
 
             # Plot the feature
             ax.plot([row["start"], row["end"]], [ypos, ypos], lw=lw, color=color)
 
             # Could add annotation text
+            
+        # Indicate strands themselves
+        ax.plot([self.start, self.end], 
+                [PLUS_STRAND_Y, PLUS_STRAND_Y],
+                lw=1, color='lightgrey', zorder=-10)
+        ax.annotate(xy=(self.end, PLUS_STRAND_Y), 
+                    xycoords="data",
+                    ha="left", va="center",
+                    fontsize=8,
+                    text=" ($+$) strand")
+        
+        # Indicate strands themselves
+        ax.plot([self.start, self.end], 
+                [NEG_STRAND_Y, NEG_STRAND_Y],
+                lw=1, color='lightgrey', zorder=-10)
+        ax.annotate(xy=(self.end, NEG_STRAND_Y), 
+                    xycoords="data",
+                    ha="left", va="center",
+                    fontsize=8,
+                    text=" ($-$) strand")
 
-        # Clean ticks
+        # Clean axis ticks
+        ax.axis("off")
         ax.set_xlim((self.start, self.end))
         ax.set_ylim((0, 1))
-        for s in ["top", "right", "bottom", "left"]:
-            ax.spines[s].set_visible(False)
-        ax.get_yaxis().set_ticks([])
         ax.label_outer()
 
         return None
@@ -242,15 +263,15 @@ class CombinedPlotter:
         """
 
         # Constants
-        SCALING = 0.1
+        SCALING = 0.08
         ROWS_PER_PRIMER = 2
         N_PRIMERS = self.primer_plotter.n_grps
 
         # Axes order and sizing
         AxesFrame = namedtuple("AxesFrame", ["name", "rows", "plot_func"])
         axes_order = [
-            AxesFrame("complexity", 25, partial(self.seq_plotter.plot_sequence_complexity, start=start, end=end)),
-            AxesFrame("genes", 5, self.gff_plotter.plot_gff_features),
+            AxesFrame("genes", 6, self.gff_plotter.plot_gff_features),
+            AxesFrame("complexity", 32, partial(self.seq_plotter.plot_sequence_complexity, start=start, end=end)),
             AxesFrame("primers", N_PRIMERS*ROWS_PER_PRIMER, partial(self.primer_plotter.plot, start=start, end=end)),
             AxesFrame("seq", 10, partial(self.seq_plotter.plot_sequence_array, start=start, end=end))
         ]
@@ -269,11 +290,21 @@ class CombinedPlotter:
 
         # Iterate over axes and plot
         l = 0
-        for axis_item in axes_order:
+        for i, axis_item in enumerate(axes_order):
+            
+            # Prepare axis
             ax = plt.subplot(gs[l:(l+axis_item.rows)])
+            
+            # Plot
             axis_item.plot_func(ax)
+            
+            # Optionally add title
+            if i == 0 and title is not None:
+                ax.set_title(title, loc="left")
+            
+            # Define boundary of next plot
             l = l + axis_item.rows + 1
 
+        # Optionally write
         if output_path is not None:
             fig.savefig(output_path, bbox_inches="tight", pad_inches=0.5)
-

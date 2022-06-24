@@ -102,5 +102,6 @@ def main(result_dir, genome_name):
         comb_plotter.plot(
             start=int(row["pad_start"]), 
             end=int(row["pad_end"]),
+            title=f"{target_id} | {row['name'].values[0]}",
             output_path=f"{result_dir}/view/{target_id}.pdf"
         )
