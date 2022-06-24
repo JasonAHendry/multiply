@@ -48,7 +48,7 @@ class GreedySearch(MultiplexSelector):
 
     def run(self, N=10_000):
         """
-        This runs but it seems to be insanely slow, even for an 8plex
+        Run a greedy search algorithm for the lowest cost multiplex
 
         """
 
@@ -142,10 +142,9 @@ class BruteForce(MultiplexSelector):
                 )
 
             # Print
-            if ix % 10 == 0:  # slow rate a bit
-                sys.stdout.write("\r")
-                sys.stdout.flush()
-                sys.stdout.write(f"  Iterations complete: {ix+1}/{total_N}")
+            sys.stdout.write("\r")
+            sys.stdout.flush()
+            sys.stdout.write(f"  Iterations complete: {ix+1}/{total_N}")
 
         print("\nDone.\n")
 
