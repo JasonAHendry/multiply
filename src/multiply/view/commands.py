@@ -11,6 +11,7 @@ from multiply.download.collection import genome_collection
 from multiply.download.gff import load_gff
 from multiply.util.io import load_fasta_as_dict
 from multiply.util.dirs import produce_dir
+from multiply.util.printing import print_header, print_footer
 
 
 # ================================================================================
@@ -50,6 +51,8 @@ def view(result_dir, genome_name):
 
 def main(result_dir, genome_name):
     # DEFINE AND CHECK FILE PATHS
+    t0 = print_header()
+    print("Parsing inputs...")
     primer_path = f"{result_dir}/table.candidate_primers.csv"
     targets_path = f"{result_dir}/table.targets_overview.csv"
     fasta_path = f"{result_dir}/targets_sequence.fasta"
@@ -58,9 +61,12 @@ def main(result_dir, genome_name):
             raise FileNotFoundError(
                 "Can't find {path}. Ensure it exists in input directory."
             )
-
-    # Create output directory
     output_dir = produce_dir(result_dir, "view")
+    print(f"  Primer CSV: {primer_path}")
+    print(f"  Targets CSV: {targets_path}")
+    print(f"  Targets FASTA: {fasta_path}")
+    print(f"  Genome: {genome_name}")
+    print("Done.\n")
 
     # LOAD
     # Multiplex data
@@ -69,13 +75,17 @@ def main(result_dir, genome_name):
     seqs = load_fasta_as_dict(fasta_path)
 
     # Gff
+    print("Loading GFF for gene body plots...")
     genome = genome_collection[genome_name]
     gff_df = load_gff(genome.gff_raw_download)
+    print("Done.\n")
 
     # ITERATE OVER TARGETS, PLOT
+    print("Plotting primer locations for each target...")
     for target_id, row in targets_df.groupby("ID"):
 
         # Extract information
+        print(f"  {target_id}")
         target_primer_df = primer_df.query("target_id == @target_id")
         target_seq = [
             seq for header, seq in seqs.items() if header.startswith(f"ID={target_id}")
@@ -105,3 +115,8 @@ def main(result_dir, genome_name):
             title=f"{target_id} | {row['name'].values[0]}",
             output_path=f"{result_dir}/view/{target_id}.pdf"
         )
+    print("Done.\n")
+
+    print(f"Plots can be found in directory: {output_dir}\n")
+
+    print_footer(t0)
