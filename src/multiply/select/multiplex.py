@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import product
 from typing import Tuple
 
@@ -15,13 +15,14 @@ class Multiplex:
 
     """
 
-    cost: float
+    cost: float = field(compare=False)
     primer_pairs: Tuple[str]
     method: str = ""
 
     def __post_init__(self):
-        self.primer_pairs.sort()
-        self.primer_pairs = tuple(self.primer_pairs)
+        if not isinstance(self.primer_pairs, Tuple):
+            self.primer_pairs.sort()
+            self.primer_pairs = tuple(self.primer_pairs)
 
     def get_primer_names(self):
         directions = ["F", "R"]
