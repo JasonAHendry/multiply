@@ -89,7 +89,7 @@ def pipeline(design):
     snpcheck.main(primer_csv=primer_csv, genome_name=params['genome'])
     align.main(primer_csv=primer_csv)
     blast.main(primer_csv=primer_csv, genome_name=params['genome'])
-    select.main(result_dir=params['output_dir'])
+    select.main(result_dir=params['output_dir'], "Greedy")
 
 
 cli.add_command(pipeline)
