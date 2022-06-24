@@ -4,7 +4,7 @@ from multiply.util.dirs import produce_dir
 from multiply.util.printing import print_header, print_footer
 from .cost.factories import IndividualCostFactory, PairwiseCostFactory
 from .cost.functions import LinearCost
-from .selectors import GreedySearch
+from .selectors import selector_collection
 from .explore import MultiplexExplorer
 
 # PARAMETERS
@@ -27,7 +27,14 @@ N_SELECT = 3
     required=True,
     help="Path to results directory for multiplex design (e.g. `results/2022-06-11_pf-default`).",
 )
-def select(result_dir):
+@click.option(
+    "-a",
+    "--algorithm",
+    type=click.Choice(selector_collection),
+    default="Greedy",
+    help="Search algorithm for optimal multiplex. Note that `BruteForce` is exceedingly slow for large multiplexes."
+)
+def select(result_dir, algorithm):
     """
     Select optimal multiplex(es) from a set of candidate primers
 
@@ -38,7 +45,7 @@ def select(result_dir):
     binding sites are fed into a cost function, which is then minimised.
 
     """
-    main(result_dir)
+    main(result_dir, algorithm)
 
 
 # ================================================================================
@@ -47,7 +54,7 @@ def select(result_dir):
 # ================================================================================
 
 
-def main(result_dir):
+def main(result_dir, algorithm):
     # PARSE CLI
     t0 = print_header()
     print("Parsing inputs...")
@@ -89,7 +96,7 @@ def main(result_dir):
     # SET SELECTION ALGORITHM
     print(f"Seaching for optimal multiplexes...")
     print(f" Algorithm: Greedy")
-    selector = GreedySearch(primer_df, cost_function)
+    selector = selector_collection[algorithm](primer_df, cost_function)
     multiplexes = selector.run()
 
     # EXPLORE OUTPUTS
@@ -99,6 +106,8 @@ def main(result_dir):
     print(f"  Total multiplexes generated: {len(explorer.multiplexes)}")
     print(f"  No. unique: {len(explorer.uniq_multiplexes)}")
     print(f"  Top {len(explorer.top_multiplexes)} retained.")
+    print(f"    Lowest cost multiplex: {', '.join(explorer.top_multiplexes[0].primer_pairs)}")
+    print(f"    Cost: {explorer.top_multiplexes[0].cost}")
 
     # WRITE OUTPUTS
     print("Writing outputs...")
