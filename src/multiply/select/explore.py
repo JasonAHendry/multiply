@@ -28,7 +28,7 @@ class MultiplexExplorer:
 
         """
 
-        self.uniq_multiplexes = sorted(set(self.multiplexes))
+        self.uniq_multiplexes = sorted(set(self.multiplexes), key=lambda m: m.cost)
 
     def _extract_from_df(self, df):
         """

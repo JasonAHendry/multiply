@@ -7,11 +7,15 @@ from typing import Tuple
 class Multiplex:
     """
     Encapsulate information about a multiplex in a manner
-    that allows for sorting (primarily by cost) and hashing,
-    such that a unique set of multiplexes can be found.
+    that allows for hashing, such that a unique set of 
+    multiplexes can be found.
 
     To make hashable, the `.primer_pairs` attribute is
     co-erced into a tuple during `__post_init__`.
+
+    NB:
+    - Call to sorted() must use `key` to sort by cost.
+
 
     """
 
