@@ -39,6 +39,10 @@ def align(primer_csv):
 
 
 def main(primer_csv):
+
+    # Parameters
+    SAVE_TOP = None
+
     # PARSE CLI
     t0 = print_header()
     input_dir = os.path.dirname(primer_csv)
@@ -106,13 +110,15 @@ def main(primer_csv):
     print(f"  Pairwise interaction matrix: {matrix_output_csv}")
 
     # ADDITIONAL OUTPUTS FOR HIGH-SCORING ALIGNMENTS
-    SAVE_TOP = 200
+    if SAVE_TOP is None:
+        SAVE_TOP = len(alignments)
     alignments.sort()
     alignment_df = pd.DataFrame([a for a in alignments[:SAVE_TOP]])
+    alignment_df.insert(0, "rank", range(SAVE_TOP))
     alignment_df.to_csv(f"{output_dir}/table.alignment_scores.csv", index=False)
     with open(f"{output_dir}/alignment_diagrams.txt", "w") as fn:
         for ix, a in enumerate(alignments[:SAVE_TOP]):
-            fn.write(f"Alignment Index: {ix:05d}\n")
+            fn.write(f"Alignment Rank: {ix:05d}\n")
             fn.write(f"{a.alignment}\n\n")
     print("Done.\n")
 
