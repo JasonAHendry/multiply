@@ -3,22 +3,38 @@
 <p align="center">Multiplex PCR design, <i>in silico</i></p>
 
 ## Overview
-`multiply` facilitates the design of optimised and reporducible multiplex PCRs. The diagram below summarises the `multiply` pipeline:
+`multiply` is a tool for efficiently designing multiplex PCRs against a set of target genes or regions. 
+
+It works by first producing a set of candidate primers for each target using primer3 (`multiply generate`). It then computes the number of SNPs in each primer (`multiply snpcheck`); potential dimers betweeen pairs of primers (`multiply align`); and potential mispriming and off-target amplicons for each primer (`multiply blast`). Information from these three quality control steps is passed to a cost function, which is minimised by brute-force or with a greedy search algorithm (`multiply select`). The entire pipeline is summarised below:
+
 <br></br>
-<p align="center"><img src=".images/multiply-pipeline.png" width="600"></p>
+<p align="center"><img src=".images/multiply-pipeline.png" width="700"></p>
 
 ## Install
-`multiply` has several software dependencies which can be installed using conda:
+First, clone the repository to your local machine:
+
 ```
+git clone https://github.com/JasonAHendry/multiply
+```
+Then, install the software dependencies using conda:
+
+```
+cd multiply
 conda update conda
 conda env create
 conda activate multiply2
 ```
-Afterwards, you can install the python package locally by running...
+Finally, install `multiply` itself with pip:
+
 ```
 pip install .
 ```
-...in the `multiply` directory.
+
+Test installation by running:
+
+```
+multiply
+```
 
 ## Basic usage
 TODO
