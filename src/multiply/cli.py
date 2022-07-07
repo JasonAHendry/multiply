@@ -26,14 +26,6 @@ def cli():
     """
     Multiplex PCR design, in silico
 
-    There are two steps to create a new multiplex PCR. First, create a design file. This file
-    will list your organism, genomic targets, amplicon sizes, &c. See the `designs` folder for
-    examples. Second, run the complete pipeline with the command:
-    
-    `multiply pipeline -d <designs/your-design.ini>`
-
-    Pipeline steps are also accessible as individual commands to interested users.
-
     """
     # Prepare logger
     logger = logging.getLogger(__name__)

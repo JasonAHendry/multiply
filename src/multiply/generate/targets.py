@@ -15,9 +15,6 @@ class Target:
     """
     Define a target for PCR
 
-    TODO:
-    - Maybe a method .set_name()? or just set directly
-
     """
 
     chrom: str
@@ -35,9 +32,7 @@ class Target:
     def from_series(cls, series):
         """
         Create Target from a pandas Series
-
-        Note sure about change below
-
+        
         """
 
         return cls(
@@ -65,7 +60,8 @@ class Target:
     def calc_pads(self, max_size_bp):
         """
         Compute the start and end position of the `pads`, these define
-        the extent of the region inside of which primers may be found
+        the maximum extent of the region inside of which primers may be 
+        found
 
         """
 
@@ -111,11 +107,6 @@ class TargetSet:
         """
         Collect and co-ordinate information about a set of Target objects
 
-        TODO:
-        - Custom exception for amplicon sizes
-        - Much better logging
-        - Could write a custom iterator method; to avoid constant self.targets
-
         """
 
         if len(targets) == 0:
@@ -151,10 +142,12 @@ class TargetSet:
 
         # Throw warning
         if too_large:
+            msg_info = "; ".join([f"{target.ID} [{target.length}bp]" 
+            for target in too_large])
             raise TargetSizeError(
-                f"The maximum amplicon size has been set to {self.max_size_bp}, "
-                f"but {len(too_large)} target(s) are larger than this: "
-                f"{', '.join([target.ID for target in too_large])}"
+                f"Maximum amplicon size is {max_size_bp}bp, "
+                f"but {len(too_large)} targets are larger than this: "
+                f"{msg_info}.\n"
             )
 
         return self
@@ -164,24 +157,25 @@ class TargetSet:
         For any targets that have overlapping pads, adjust them
         such that the intervening difference is split equally
 
+        NB: the algorithm below assumes the targets are sorted;
+        but sorting occurs in initialisation method.
 
         """
 
         for (left, right) in zip(self.targets[:-1], self.targets[1:]):
 
-            # Only check distance if they are on  the same chromosome
+            # No possibility of overlap if on different chromosomes
             if left.chrom != right.chrom:
                 continue
 
-            # Ensure they do not overlap
+            # Ensure targets themselves do not overlap
             bp_bw_targets = right.start - left.end
             if bp_bw_targets <= 0:
                 raise TargetPositionError(
                     f"Targets {left.ID} and {right.ID} overlap. Cannot build multiplex."
                 )
 
-            # Check that pads do not overlap
-            # This should be logged as a warning
+            # Check if pads overlap
             bp_bw_pads = right.pad_start - left.pad_end
             if bp_bw_pads <= 0:
                 print(f"Pads overlap between {left.ID} and {right.ID}")
@@ -189,12 +183,8 @@ class TargetSet:
                     f"Automatically adjusting. Note this may compromise ability to find primers later on."
                 )
 
-                # TODO:
-                # - This is pretty rough; need to tidy + checks
-                # - Maybe pads are properties?
-                # - Want to check this hasn't made them too small
-
-                middle_point = int(left.end + (right.start - left.end) / 2)
+                # If pads overlap, adjust to use split space b/w targets equally
+                middle_point = int(left.end + bp_bw_targets / 2)
                 right.pad_start = middle_point + 1
                 left.pad_end = middle_point
 
