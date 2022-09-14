@@ -1,7 +1,13 @@
 import os
 import configparser
+from multiply.util.definitions import ROOT_DIR
 from multiply.download.genomes import PlasmoDBFactory, EnsemblGenomesFactory
 
+
+
+
+INI_PATH = f"{ROOT_DIR}/genomes/collection.ini"
+FACTORIES = [PlasmoDBFactory, EnsemblGenomesFactory]
 
 # ================================================================================
 # Define a collection of Genome objects
@@ -91,8 +97,5 @@ class GenomeCollection(dict):
 # - Not sure I like this here, as it gets run on every import
 # ================================================================================
 
-
-INI_PATH = "genomes/collection.ini"
-FACTORIES = [PlasmoDBFactory, EnsemblGenomesFactory]
 genome_collection = GenomeCollection(INI_PATH, FACTORIES)
 genome_collection.populate()
