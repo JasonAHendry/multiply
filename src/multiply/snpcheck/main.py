@@ -21,7 +21,7 @@ def snpcheck(primer_csv, genome_name):
 
     """
     # PARSE CLI
-    t0 = print_header()
+    t0 = print_header("MULTIPLY: Identify SNPs in primers")
     input_dir = os.path.dirname(primer_csv)
     output_dir = produce_dir(input_dir, "snpcheck")
     genome = genome_collection[genome_name]

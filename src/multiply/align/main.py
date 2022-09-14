@@ -19,7 +19,7 @@ def align(primer_csv):
     SAVE_TOP = None
 
     # PARSE CLI
-    t0 = print_header()
+    t0 = print_header("MULTIPLY: Perform pairwise alignment to identify possible primer dimers")
     input_dir = os.path.dirname(primer_csv)
     output_dir = produce_dir(input_dir, "align")
     print("Parsing inputs...")

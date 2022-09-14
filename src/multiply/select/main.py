@@ -28,7 +28,7 @@ def select(result_dir, algorithm):
 
     """
     # PARSE CLI
-    t0 = print_header()
+    t0 = print_header("MULTIPLY: Select optimal multiplex primers")
     print("Parsing inputs...")
     output_dir = produce_dir(result_dir, "select")
     primer_df = pd.read_csv(f"{result_dir}/table.candidate_primers.csv")

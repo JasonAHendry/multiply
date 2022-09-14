@@ -19,7 +19,7 @@ def view(result_dir, genome_name):
 
     """
     # DEFINE AND CHECK FILE PATHS
-    t0 = print_header()
+    t0 = print_header("MULTIPLY: View candidate primers and amplicons")
     print("Parsing inputs...")
     primer_path = f"{result_dir}/table.candidate_primers.csv"
     targets_path = f"{result_dir}/table.targets_overview.csv"

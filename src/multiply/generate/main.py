@@ -20,7 +20,7 @@ def generate(design):
 
     """
     # PARSE CLI
-    t0 = print_header()
+    t0 = print_header("MULTIPLY: Generate candidate primers for all targets using Primer3")
     params = parse_parameters(design)
     genome = genome_collection[params["genome"]]
     params["output_dir"] = create_output_directory(params)

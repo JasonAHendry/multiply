@@ -3,7 +3,7 @@ import sys
 import datetime
 
 
-def print_header():
+def print_header(script_descrip):
     """
     Print header for a script
 
@@ -20,7 +20,8 @@ def print_header():
 
     t0 = datetime.datetime.now().replace(microsecond=0)
     print("=" * 80)
-    print(f"Command: {command} {args}")
+    print(f"{script_descrip}")
+    print(f"Invoked by: {command} {args}")
     print(f"Started at: {t0.strftime('%Y-%m-%d %H:%M:%S')}")
     print("-" * 80)
 

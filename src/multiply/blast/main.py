@@ -20,7 +20,7 @@ def blast(primer_csv, genome_name):
 
     """
     # PARSE CLI
-    t0 = print_header()
+    t0 = print_header("MULTIPLY: BLAST primers to identify possible off-target amplicons")
     input_dir = os.path.dirname(primer_csv)
     print("Parsing inputs...")
     output_dir = produce_dir(input_dir, "blast")
