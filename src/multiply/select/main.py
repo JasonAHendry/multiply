@@ -103,10 +103,10 @@ def select(result_dir, algorithm):
 
     # WRITE OUTPUTS
     print("Writing outputs...")
-    info_path = f"{output_dir}/table.multiplexes.information.csv"
-    order_path = f"{output_dir}/table.multiplexes.order.csv"
-    explorer.get_union_dataframe(f"{output_dir}/table.multiplexes_overview.csv")
-    explorer.get_order_dataframe(f"{output_dir}/table.multiplexes_order.csv")
+    info_path = f"{output_dir}/table.multiplexes_information.csv"
+    order_path = f"{output_dir}/table.multiplexes_order.csv"
+    explorer.get_union_dataframe(info_path)
+    explorer.get_order_dataframe(order_path)
     print(f"  Information about primers in multiplexes: {info_path}")
     print(f"  Primer ordering table: {order_path}")
     print("Done.\n")
