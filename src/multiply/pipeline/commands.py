@@ -34,3 +34,5 @@ def pipeline(design):
     align(primer_csv=primer_csv)
     blast(primer_csv=primer_csv, genome_name=params["genome"])
     select(result_dir=params["output_dir"], algorithm="Greedy")
+
+    # ADD HERE -- write a README.txt

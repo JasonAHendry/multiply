@@ -1,5 +1,6 @@
 import os
-import datetime
+import sys
+import shutil
 
 
 def produce_dir(*args):
@@ -28,13 +29,20 @@ def produce_dir(*args):
 
     return dir_name
 
+def check_output_dir_overwrite(output_dir):
+    """
+    Check if the `output_dir` already exists, 
+    if so, ask before overwriting it or exit.
+    
+    """
+    if os.path.exists(output_dir):
+        
+        print(f"Experiment directory with name {output_dir} already exists.")
+        clean = input("Do you want to overwrite it? [Yes/No]: ")
+       
+        if clean == "Yes":
+            shutil.rmtree(f"{output_dir}")
+        else:
+            print("Exiting. Change 'name' in [Output] section of design file before running again.")
+            sys.exit()
 
-def create_output_directory(params):
-    """Create output directory for an experiment"""
-
-    # Create a date stamped output directory
-    today = datetime.datetime.today().strftime("%Y-%m-%d")
-    output_dir = f"results/{today}_{params['output_name']}"
-    produce_dir(output_dir)
-
-    return output_dir

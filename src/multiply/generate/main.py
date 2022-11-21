@@ -2,7 +2,7 @@ import pandas as pd
 
 from multiply.util.printing import print_header, print_footer, print_parameters
 from multiply.util.parsing import parse_parameters
-from multiply.util.dirs import create_output_directory, produce_dir
+from multiply.util.dirs import produce_dir, check_output_dir_overwrite
 from multiply.util.io import load_bed_as_dataframe
 from multiply.download.collection import genome_collection
 from multiply.generate.targets import Target, TargetSet
@@ -23,7 +23,10 @@ def generate(design):
     t0 = print_header("MULTIPLY: Generate candidate primers for all targets using Primer3")
     params = parse_parameters(design)
     genome = genome_collection[params["genome"]]
-    params["output_dir"] = create_output_directory(params)
+    # Create output directory 
+    check_output_dir_overwrite(params["output_dir"])
+    _ = produce_dir(params["output_dir"])
+    # Print to user
     print_parameters(design, params)
 
     # EXTRACT GENE INFORMATION
