@@ -3,6 +3,7 @@ import numpy as np
 from multiply.util.dirs import produce_dir
 from multiply.util.printing import print_header, print_footer
 from multiply.util.plot import visualise_pairwise_costs
+from multiply.util.io import write_amplicons_to_bed
 from .cost.factories import IndividualCostFactory, PairwiseCostFactory
 from .cost.functions import LinearCost
 from .selectors import selector_collection
@@ -101,7 +102,7 @@ def select(result_dir, algorithm):
         output_path=f"{output_dir}/search.diagnostics.png",
     )
 
-    # WRITE OUTPUTS
+    # WRITE JOINT OUTPUTS
     print("Writing outputs...")
     info_path = f"{output_dir}/table.multiplexes_information.csv"
     order_path = f"{output_dir}/table.multiplexes_order.csv"
@@ -111,8 +112,13 @@ def select(result_dir, algorithm):
     print(f"  Primer ordering table: {order_path}")
     print("Done.\n")
 
-    # PLOTTING
-    # - This is just a sketch, needs cleaning / encapsulation
+    # WRITE INDIVIDUAL MULTIPLEX OUTPUTS
+    # TODO:
+    # - Primer Multiplex Dataframe
+    # - Scores Summary Dataframe
+    # - Pairwise interactions PDF and TXT
+    # - amplicons.bed
+    # - primers.bed
     alignments_df = pd.read_csv(f"{result_dir}/align/table.alignment_scores.csv")
     for ix, multiplex in enumerate(explorer.top_multiplexes):
 
@@ -127,6 +133,12 @@ def select(result_dir, algorithm):
             f"{multiplex_output_dir}/table.{multiplex_name}_overview.csv", index=False
         )
 
+        # Write amplicons BED file
+        write_amplicons_to_bed(
+            multiplex_df, 
+            f"{multiplex_output_dir}/amplicons.{multiplex_name}.bed"
+        )
+
         # Get pairwise dataframe
         pairwise_df = pairwise_costs[0].primer_values.loc[primer_names, primer_names]
         visualise_pairwise_costs(
@@ -138,7 +150,7 @@ def select(result_dir, algorithm):
             "primer1_name in @primer_names and primer2_name in @primer_names"
         )
 
-        with open(f"{multiplex_output_dir}/diagrams.{multiplex_name}.txt", "w") as fn:
+        with open(f"{multiplex_output_dir}/diagrams.{multiplex_name}.primer_interactions.txt", "w") as fn:
             for _, row in multiplex_align_df.iterrows():
                 fn.write(f"Overall rank: {row['rank']}\n")
                 fn.write(row["alignment"])

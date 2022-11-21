@@ -91,6 +91,37 @@ def write_primers_to_bed(primer_df, output_path):
             bed.write(f"{row['chrom']}\t{start}\t{end}\t{row['primer_name']}\n")
 
 
+def write_amplicons_to_bed(primer_df, output_path):
+    """
+    Use primers data to write a bed file of amplicons
+    
+    params
+        primer_df: pandas DataFrame, shape(n_columns, n_primers)
+            A pandas dataframe, typically created from the
+            `multiply generate` command; where each row
+            contains information about a specific primer.
+        output_path: str
+            Path to output `.bed` file.
+    
+    """
+
+    # Create BED file
+    with open(output_path, "w") as bed:
+        for target, target_df in primer_df.groupby("target_id"):
+            
+            # Get primer information for this target
+            F_info = target_df.query("direction == 'F'").squeeze()
+            R_info = target_df.query("direction == 'R'").squeeze()
+            
+            # Create a BED record
+            record = f"{F_info['chrom']}"
+            record += f"\t{F_info['start']}\t{R_info['start']}"
+            record += f"\t{target}\n"
+            
+            # Write
+            bed.write(record)
+
+
 def write_fasta_from_bed(bed_path, reference_fasta_path, output_path, verbose=False):
     """
     Write a .fasta file from a .bed file, using bedtools
