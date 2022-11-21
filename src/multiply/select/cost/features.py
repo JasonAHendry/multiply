@@ -19,10 +19,12 @@ class IndividualCosts:
 
     @staticmethod
     def _check_primer_values(primer_values):
-        assert isinstance(primer_values, pd.Series), \
-        "`primer_values` must be a pandas series."
-        assert all([p.endswith("_F") or p.endswith("_R") for p in primer_values.index]), \
-        "`primer_values` index must be primer names."
+        assert isinstance(
+            primer_values, pd.Series
+        ), "`primer_values` must be a pandas series."
+        assert all(
+            [p.endswith("_F") or p.endswith("_R") for p in primer_values.index]
+        ), "`primer_values` index must be primer names."
 
     def collapse_to_per_pair(self, collapse_func=sum):
         """
@@ -51,14 +53,27 @@ class IndividualCosts:
         """
         Z-score standardise, and then multiply by weight
 
+        NB:
+        - It is critical this normalisation handles costs
+        that have no variation across primer pairs
+
         """
 
         if self.primer_pair_values is None:
             raise ValueError("Run `.collapse_to_per_pair()` first.")
 
-        # Normalise
+        # Compute mean and standard deviation
         mu = self.primer_pair_values.mean()
         std = self.primer_pair_values.std()
+
+        if not std > 0:
+            print(
+                f"No variation in {self.cost_name} observed across primer pairs."
+                "Will not contribute to scoring."
+            )
+            std = 1
+
+        # Compute normalisation
         self.primer_pair_costs = self.weight * (self.primer_pair_values - mu) / std
 
         return self
@@ -89,14 +104,18 @@ class PairwiseCosts:
         Check that these conditions are met here.
 
         """
-        assert isinstance(primer_values, pd.DataFrame), \
-        "`primer_values` must be a pandas DataFrame."
-        assert primer_values.shape[0] == primer_values.shape[1], \
-        "`primer_values` is a pairwise matrix oof primers, it should be square."
-        assert all([p.endswith("_F") or p.endswith("_R") for p in primer_values.index]), \
-        "`primer_values` index must be primer names."
-        assert all(primer_values.index == primer_values.columns), \
-        "`primer_values` index and column names must be the same."
+        assert isinstance(
+            primer_values, pd.DataFrame
+        ), "`primer_values` must be a pandas DataFrame."
+        assert (
+            primer_values.shape[0] == primer_values.shape[1]
+        ), "`primer_values` is a pairwise matrix oof primers, it should be square."
+        assert all(
+            [p.endswith("_F") or p.endswith("_R") for p in primer_values.index]
+        ), "`primer_values` index must be primer names."
+        assert all(
+            primer_values.index == primer_values.columns
+        ), "`primer_values` index and column names must be the same."
 
     def collapse_to_per_pair(self, collapse_func=sum):
         """
@@ -132,14 +151,27 @@ class PairwiseCosts:
         """
         Normalise to Z-scores and then multiply by weight
 
+        NB:
+        - It is critical this normalisation handles costs
+        that have no variation across primer pairs
+
         """
         if self.primer_pair_values is None:
             raise ValueError("Run `.collapse_to_per_pair()` first.")
 
-        # Normalise
+        # Compute mean and standard devation
         arr = np.array(self.primer_pair_values)
         mu = arr.mean()
         std = arr.std()
+
+        if not std > 0:
+            print(
+                f"No variation in {self.cost_name} observed across primer pairs."
+                "Will not contribute to scoring."
+            )
+            std = 1
+
+        # Normalise
         self.primer_pair_costs = self.weight * (self.primer_pair_values - mu) / std
 
         return self
