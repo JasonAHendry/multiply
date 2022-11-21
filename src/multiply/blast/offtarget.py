@@ -126,6 +126,9 @@ class AmpliconFinder:
             ),
         )
 
+    # BELOW HERE WE WANT TO IMPROVE THINGS
+    # - Key is to produce cross table for offtarget amplicons
+
     def create_ontarget_dataframe(self, primer_df):
         """
         Create an ontarget dataframe
@@ -137,3 +140,5 @@ class AmpliconFinder:
     def create_offtarget_dataframe(self):
         """Create an offtarget dataframe"""
         self.offtarget_df = self.amplicon_df.query("not (F_expected and R_expected)")
+
+    #def 
