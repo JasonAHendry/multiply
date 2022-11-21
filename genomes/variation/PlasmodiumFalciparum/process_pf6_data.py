@@ -49,6 +49,7 @@ def main(target_population):
         pop: pop_df["sample"].tolist() for pop, pop_df in metadata.groupby("population")
     }
     pop_samples_dt["GLOBAL"] = metadata["sample"].tolist()
+    print(f"Target populations available: {', '.join(pop_samples_dt)}")
 
     # Iterate over populations
     for population, samples in pop_samples_dt.items():
