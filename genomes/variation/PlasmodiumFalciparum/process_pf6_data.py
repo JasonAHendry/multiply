@@ -1,12 +1,13 @@
 # Small script to process biallelic SNPs from Pf6
 # into only common SNPs, partitioned by geography
 #
-# Too slow, need to submit to BMRC
+# Uses a version of Pf6 downloaded locally on my machine
+#
+# Subpopulations in Pf6: CAF, EAF, ESEA, OCE, SAM, SAS, WAF, WSEA, GLOBAL
 #
 # J.Hendry, 2022/06/20
 
 import click
-import logging
 import subprocess
 import pandas as pd
 import numpy as np
