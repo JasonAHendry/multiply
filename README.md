@@ -38,7 +38,7 @@ multiply
 ## Basic usage
 
 #### Part 1: Download information about your target organism.
-To generate a new multiplex PCR, you first need to download the reference genome (FASTA) and information about gene locations (GFF) for your target organism. To see what organisms are available for download$^1$, type:
+To generate a new multiplex PCR, you first need to download the reference genome (FASTA) and information about gene locations (GFF) for your target organism. To see what organisms are available for download $^1$, type:
 
 ```
 multiply download --available
