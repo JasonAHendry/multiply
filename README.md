@@ -74,8 +74,6 @@ $1$ New organisms can be made available for download by adding them to the colle
 
 $2$ You can make your own primer3 settings by creating new or alterating existing JSON files in the `settings/primer3` folder. 
 
-## Known limitations
-TODO
 
 ## Resources
 `multiply` uses the following external software and databases:
@@ -83,3 +81,14 @@ TODO
 - `bedtools`. Genome arithmetic. https://bedtools.readthedocs.io/en/latest/
 - `blastn`. Local alignment search. https://blast.ncbi.nlm.nih.gov/Blast.cgi
 - **plasmodb**. *Plasmodium* reference genome. http://plasmodb.org/plasmo/
+
+Primer dimer detection uses an alignment algorithm similar to the one described by [Johnston et al. (2019)](https://www.nature.com/articles/s41598-018-36612-9).
+
+## Citation
+
+
+## Acknowledgements
+My thanks to Nada Kubikova, who gave helpful advice on primer design for multiplex PCR; and to Dan J. Bridges, Gavin Band, Mulenga Mwenda, and Annie Forster, who tested various versions `multiply`.
+
+This work was funded by the Bill and Melinda Gates Foundation (INV-003660).
+
