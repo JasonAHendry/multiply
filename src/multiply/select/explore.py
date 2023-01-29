@@ -29,6 +29,7 @@ class MultiplexExplorer:
         """
 
         self.uniq_multiplexes = sorted(set(self.multiplexes), key=lambda m: m.cost)
+        self.N_uniq = len(self.uniq_multiplexes)
 
     def _extract_from_df(self, df):
         """
@@ -51,8 +52,14 @@ class MultiplexExplorer:
         """
 
         # Limit to `top_N` multiplexes
-        self.top_N = top_N
-        self.top_multiplexes = self.uniq_multiplexes[:top_N]
+        if top_N > self.N_uniq:
+            print(f"  Requested top {top_N} multiplexes, but only {self.N_uniq} multiplexes found.")
+            print("  **Consider re-running with brute force selection algorithm.**")
+            print(f"  Will return {self.N_uniq} multiplexes.")
+            self.top_N = self.N_uniq
+        else:
+            self.top_N = top_N
+        self.top_multiplexes = self.uniq_multiplexes[:self.top_N]
 
     def get_union_dataframe(self, output_path=None):
         """
