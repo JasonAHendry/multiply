@@ -39,9 +39,8 @@ def generate(design):
         genes = [Target.from_series(row) for _, row in gene_df.iterrows()]
 
         # Pretty ugly, would be nice to encapsulate
-        if params["has_names"]:
-            for gene in genes:
-                gene.name = params["target_id_to_name"][gene.ID]
+        for gene in genes:
+            gene.name = params["target_id_to_name"][gene.ID]
     print(f"  Found {len(genes)} gene(s).")
 
     # EXTRACT REGION INFORMATION
