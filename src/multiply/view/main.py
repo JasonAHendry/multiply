@@ -55,8 +55,9 @@ def view(result_dir, genome_name):
         # Extract information
         print(f"  {target_id}")
         target_primer_df = primer_df.query("target_id == @target_id")
+        # Important to handle situtations where target name is subset; e.g. 'Tar3' and 'Tar32'
         target_seq = [
-            seq for header, seq in seqs.items() if header.startswith(f"ID={target_id}")
+            seq for header, seq in seqs.items() if header.startswith(f"ID={target_id}|name=")
         ][0]
 
         # Prepare plotters
