@@ -53,20 +53,25 @@ def view(result_dir, genome_name):
     for target_id, row in targets_df.groupby("ID"):
 
         # Extract information
-        print(f"  {target_id}")
+        target_info = row.squeeze()
+        chrom = str(target_info["chrom"])
+        pad_start = int(target_info["pad_start"])
+        pad_end = int(target_info["pad_end"])
+        target_name = str(target_info["name"])
+        print(f"  {target_id} | {target_name}")
         target_primer_df = primer_df.query("target_id == @target_id")
         # Important to handle situtations where target name is subset; e.g. 'Tar3' and 'Tar32'
         target_seq = [
-            seq for header, seq in seqs.items() if header.startswith(f"ID={target_id}|name=")
+            seq for header, seq in seqs.items() if header.startswith(f"ID={target_id}|name={target_name}")
         ][0]
 
         # Prepare plotters
         seq_plotter = SequencePlotter(target_seq)
         gff_plotter = GffPlotter(
             gff=gff_df,
-            chrom=str(row["chrom"].values[0]),
-            start=int(row["pad_start"]),
-            end=int(row["pad_end"]),
+            chrom=chrom,
+            start=pad_start,
+            end=pad_end,
         )
         primer_plotter = PrimerPlotter(target_primer_df)
 
@@ -79,9 +84,9 @@ def view(result_dir, genome_name):
 
         # Plot
         comb_plotter.plot(
-            start=int(row["pad_start"]),
-            end=int(row["pad_end"]),
-            title=f"{target_id} | {row['name'].values[0]}",
+            start=pad_start,
+            end=pad_end,
+            title=f"{chrom} | {pad_end-pad_start}bp window | {target_id} | {target_name}",
             output_path=f"{result_dir}/view/{target_id}.pdf",
         )
     print("Done.\n")
