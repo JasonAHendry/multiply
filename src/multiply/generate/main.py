@@ -2,6 +2,7 @@ import pandas as pd
 
 from multiply.util.printing import print_header, print_footer, print_parameters
 from multiply.util.parsing import parse_parameters
+from multiply.util.exceptions import NoPrimersFoundException
 from multiply.util.dirs import produce_dir, check_output_dir_overwrite
 from multiply.util.io import load_bed_as_dataframe
 from multiply.download.collection import genome_collection
@@ -20,10 +21,12 @@ def generate(design):
 
     """
     # PARSE CLI
-    t0 = print_header("MULTIPLY: Generate candidate primers for all targets using Primer3")
+    t0 = print_header(
+        "MULTIPLY: Generate candidate primers for all targets using Primer3"
+    )
     params = parse_parameters(design)
     genome = genome_collection[params["genome"]]
-    # Create output directory 
+    # Create output directory
     check_output_dir_overwrite(params["output_dir"])
     _ = produce_dir(params["output_dir"])
     # Print to user
@@ -117,6 +120,15 @@ def generate(design):
         # Store
         primer_pair_dt[target_id] = uniq_primer_pairs
     print("Done.\n")
+
+    # Ensure we have at least one unique primer pair
+    for target_id, uniq_primer_pairs in primer_pair_dt.items():
+        if len(uniq_primer_pairs) == 0:
+            raise NoPrimersFoundException(
+                f"No primer pairs were found for {target_id}.  "
+                "Consider changing primer3 settings (found in 'settings/primer3'), or `max_size_bp`"
+                "in [Amplicons] in your design file, or your target."
+            )
 
     # Add tails, if provided
     if params["include_tails"]:

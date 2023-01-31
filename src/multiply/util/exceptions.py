@@ -17,3 +17,7 @@ class TargetPositionError(Exception):
 class NoPrimerNameException(Exception):
     """ Raised when the `primer_name` column is missing """
     pass
+
+class NoPrimersFoundException(Exception):
+    """ Raised  when no primers are found for a target """
+    pass
