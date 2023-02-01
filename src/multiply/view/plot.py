@@ -308,3 +308,5 @@ class CombinedPlotter:
         # Optionally write
         if output_path is not None:
             fig.savefig(output_path, bbox_inches="tight", pad_inches=0.5)
+            plt.close(fig)
+        

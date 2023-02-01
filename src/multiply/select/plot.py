@@ -30,3 +30,4 @@ def plot_explorer_costs(algorithm, algo_costs, rnd_costs, output_path=None):
     
     if output_path is not None:
         fig.savefig(output_path, pad_inches=0.5, bbox_inches="tight")
+        plt.close(fig)
