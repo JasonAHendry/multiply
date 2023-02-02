@@ -39,6 +39,8 @@ class AlignmentAlgorithm(ABC):
 
     """
 
+    rc_map = {"A": "T", "T": "A", "C": "G", "G": "C"}
+
     def __init__(self):
         pass
 
@@ -102,19 +104,23 @@ class AlignmentAlgorithm(ABC):
 # ================================================================================
 
 
-class PrimerDimerAlgorithm(AlignmentAlgorithm):
+class PrimerDimerLike(AlignmentAlgorithm):
     """
-    Align two primers using ann algorithm similar to Primer Dimer
-    from TK et al.
-
-    RUNNING -- but needs a lot of testing / re-factoring
-    Plus want a Numba version
-
+    Align two primers using an algorithm like the one described
+    by Johnston et al. (2019) Sci Reports
+    
+    Primary idea is to only allow:
+    - Ungapped alignments
+    - With 5' overhangs (i.e. extensible)
+    
+    And then to add a bonus if either 3' end is complementary in
+    the highest scoring alignment
+    
+    
     """
-
+    
     param_path = "settings/alignment/primer_dimer/parameters.json"
-    rc_map = {"A": "T", "T": "A", "C": "G", "G": "C"}  # Make this a global
-
+    
     def load_parameters(self):
         """
         Load parameters necessary for Primer Dimer algorithm,
@@ -127,309 +133,161 @@ class PrimerDimerAlgorithm(AlignmentAlgorithm):
         # Load nearest neighbour model
         self.nn_scores = create_nn_score_dt(
             match_json=params["match_scores"],
-            single_mismatch_json=params["single_mismatch_scores"]
+            single_mismatch_json=params["single_mismatch_scores"],
+            double_mismatch_score=params["double_mismatch_score"]
         )
 
         # Load penalties
         self.end_length = params["end_length"]
-        self.end_penalty = params["end_penalty"]
+        #self.end_penalty = params["end_penalty"]
         self.end_bonus = params["end_bonus"]
-
-    def align(self):
-        """
-        Calculate a score for a pair of primers that is
-        related to their likelihood of forming a
-        primer dimer, inspired by PrimerDimer
-
-        A change in Gibb's free energy is calculated
-        based on the extent of complementary base pairing
-
-        End penalties / bonus are added to the delta G to
-        return the final score.
-
-        See: http://www.primer-dimer.com/
-
-        """
-
-        # Redfine sequences based on length
-        n1 = len(self.primer1)
-        n2 = len(self.primer2)
-
-        if n1 > n2:
-            l, nL = self.primer1, n1
-            s, nS = self.primer2[::-1], n2
-        else:
-            l, nL = self.primer2, n2
-            s, nS = self.primer1[::-1], n1
-
-        # Iterate
-        start_ix = 0
-        dimer_score = 100
-        for i in range(nL - 2 + 1):
-            if i + nS > nL:
-                w = nL - i - 2 + 1
-            else:
-                w = nS - 2 + 1
-
-            current_score = 0
-            penalties = 0
-            for j in range(w):
-                nn = l[(i + j) : (i + j + 2)]
-                nn += "/"
-                nn += s[j : (j + 2)]
-                current_score += self.nn_scores[nn]
-
-                # 3' end penalties
-                if j < self.end_length or (nL - 1 - i - j) < self.end_length:
-                    if self.rc_map[l[i + j]] != s[j]:
-                        penalties += self.end_penalty
-                if i + j == nL - 2:
-                    if self.rc_map[l[i + j + 1]] != s[j + 1]:
-                        penalties += self.end_penalty
-
-            # Add penalties
-            current_score += penalties
-
-            # Add end bonus if no penalties
-            if penalties == 0:
-                current_score += self.end_bonus
-
-            if current_score < dimer_score:
-                dimer_score = current_score
-                start_ix = i
-
-        # SET
-        self.score = dimer_score
-        self.start_ix = start_ix
-
-    def get_alignment_string(self):
-        """
-        Could definitely be cleaned up...
-        """
-
-        # Redfine sequences based on length
-        n1 = len(self.primer1)
-        n2 = len(self.primer2)
-
-        if n1 > n2:
-            l, nL, lname = self.primer1, n1, self.primer1_name
-            s, nS, sname = self.primer2[::-1], n2, self.primer2_name
-        else:
-            l, nL, lname = self.primer2, n2, self.primer2_name
-            s, nS, sname = self.primer1[::-1], n1, self.primer1_name
-
-        # Define long and short primer strings
-        lstr = "'5-" + l + "-3'"
-        sstr = " " * self.start_ix + "'3-" + s + "-5'"
-
-        # Determine string specifying match / mismatch
-        match = " " * 3  # compensate for 3'-, 5'-
-        match += " " * self.start_ix  # offset of alignment
-        for s_ix, l_nt in enumerate(l[self.start_ix : (self.start_ix + nS)]):
-            if self.rc_map[l_nt] == s[s_ix]:
-                match += "|"
-            else:
-                match += " "
-
-        # Sequence names
-        if lname and sname:
-            nc = max([len(lname), len(sname)])
-        else:
-            nc = 1
-            lname = "L"
-            sname = "S"
-
-        # Template to allow for names of varying character length
-        seq_str = "{:>%d}:    {}" % nc
-        middle_str = "{:>%d}     {}" % nc
-
-        # Final print
-        self.alignment = f"Dimer Score: {self.score:.02f}\n"
-        self.alignment += f"{seq_str.format(lname, lstr)}\n"
-        self.alignment += f"{middle_str.format('', match)}\n"
-        self.alignment += f"{seq_str.format(sname, sstr)}\n"
-
-        return self.alignment
-
-
-class PrimerDimerAlgorithmNumba(AlignmentAlgorithm):
-    """
-    A quick Numba implementation of the Primere Dimer
-    Algorithm above
-
-    A few points are that: (1) jitclass didn't work natively;
-    (2) you can't use instances variables, hence make a static method;
-    (3) Numba has it's own dictionary typing, which I convert to
-    in load_parameters()
-
-    I found a modest performance improvement of about 50%.
-
-    """
-
-    param_path = "settings/alignment/primer_dimer/parameters.json"
-    rc_map = {"A": "T", "T": "A", "C": "G", "G": "C"}  # Make this a global
-
-    def load_parameters(self):
-        """
-        Load parameters necessary for Primer Dimer algorithm,
-        and set as attributes
-        
-        """
-        # Load parameter JSON
-        params = json.load(open(self.param_path, "r"))
-
-        # Load nearest neighbour model
-        self.nn_scores = create_nn_score_dt(
-            match_json=params["match_scores"],
-            single_mismatch_json=params["single_mismatch_scores"]
-        )
-
-        # Load penalties
-        self.end_length = params["end_length"]
-        self.end_penalty = params["end_penalty"]
-        self.end_bonus = params["end_bonus"]
-        
-        # Create Numba versions of dictionaries
-        self.nn_scores_numba = Dict()
-        for k, v in self.nn_scores.items():
-            self.nn_scores_numba[k] = v
-            
-        self.rc_map_numba = Dict()
-        for k, v in self.rc_map.items():
-            self.rc_map_numba[k] = v
-        
-        
-    def align(self):
-        """ Wrapper for jit implementation of _align() """
-        
-        
-        self.score, self.start_ix = \
-        self._align(
-            primer1=self.primer1,
-            primer2=self.primer2,
-            rc_map=self.rc_map_numba,
-            nn_scores=self.nn_scores_numba,
-            end_length=self.end_length,
-            end_penalty=self.end_penalty,
-            end_bonus=self.end_bonus
-        )
         
     @staticmethod
-    @njit
-    def _align(primer1, primer2, rc_map, nn_scores, end_length, end_penalty, end_bonus):
+    def _calc_linear_extension_bonus(matching, 
+                                     overhang_left, 
+                                     overhang_right, 
+                                     end_length, 
+                                     end_bonus):
         """
-        Calculate a score for a pair of primers that is
-        related to their likelihood of forming a
-        primer dimer, inspired by PrimerDimer
+        Calculate a bonus score for primer-dimer alignments that would allow for *extension*
 
-        A change in Gibb's free energy is calculated
-        based on the extent of complementary base pairing
+        params
+            matching : list[bool]
+                List of booleans indicating whether or not bases matched
+                for this alignment position
+            overhang_left : bool
+                Is there an overhang on the left side of the matches;
+                i.e. would extension be possible?
+            overhang_right : bool
+                As above, but right side.
+            end_length : int
+                Number of bases to consider for end bonus.
+            end_bonus : float
+                Bonus to add per aligned, extendible base.
 
-        End penalties / bonus are added to the delta G to
-        return the final score.
-
-        See: http://www.primer-dimer.com/
+        returns
+            _ : float
+                Bonus score in [-2*end_length*end_bonus, 0].
 
         """
 
-        # Redfine sequences based on length
-        n1 = len(primer1)
-        n2 = len(primer2)
+        # Left end
+        left_end = 0
+        for match in matching[:end_length]:
+            if not overhang_left:
+                break
+            if not match:
+                break
+            left_end += 1
 
-        if n1 > n2:
-            l, nL = primer1, n1
-            s, nS = primer2[::-1], n2
-        else:
-            l, nL = primer2, n2
-            s, nS = primer1[::-1], n1
+        # Right end
+        right_end = 0
+        for match in matching[::-1][:end_length]:
+            if not overhang_right:
+                break
+            if not match:
+                break
+            right_end += 1
 
-        # Iterate
-        start_ix = 0
-        dimer_score = 100
-        for i in range(nL - 2 + 1):
-            if i + nS > nL:
-                w = nL - i - 2 + 1
-            else:
-                w = nS - 2 + 1
+        return (left_end + right_end) * end_bonus
+        
+    def align(self):
+        """
+        Align primers;
+        
+        Finding highest score and its associated
+        start position
+        
+        """
+        
+        # Identify longer and shorter primer
+        primers = [self.primer1, self.primer2]
+        primers.sort(key=len, reverse=True)
+        l, s = primers
+        s = s[::-1]
+        nL, nS = len(l), len(s)
 
+        # Iterate over each start position
+        best_start = 0
+        best_score = 10
+        best_matching = []
+        for i in range(nL - 1):
+
+            # Compute score for alignment
+            matching = []
             current_score = 0
             penalties = 0
-            for j in range(w):
-                nn = l[(i + j) : (i + j + 2)]
-                nn += "/"
-                nn += s[j : (j + 2)]
-                current_score += nn_scores[nn]
+            for j in range(nS - 1):
 
-                # 3' end penalties
-                if j < end_length or (nL - 1 - i - j) < end_length:
-                    if rc_map[l[i + j]] != s[j]:
-                        penalties += end_penalty
+                # Compute psuedo-Gibb's
+                l_bases = l[(i+j):(i+j+2)]
+                s_bases = s[j:(j+2)]
+                nn = f"{l_bases}/{s_bases}"
+                current_score += self.nn_scores[nn]
+
+                # Compute if matching, for left-end
+                matching.append(self.rc_map[s[j]] == l[i+j])
+
+                # Stop if reached last dinucleotide of longer primer
                 if i + j == nL - 2:
-                    if rc_map[l[i + j + 1]] != s[j + 1]:
-                        penalties += end_penalty
+                    break
 
-            # Add penalties
-            current_score += penalties
+            # Add matching state for last nucleotide
+            matching.append(self.rc_map[s[j+1]] == l[i+j+1])
 
-            # Add end bonus if no penalties
-            if penalties == 0:
-                current_score += end_bonus
+            # Compute end bonus
+            current_score += self._calc_linear_extension_bonus(
+                matching,
+                overhang_left=i > 0,
+                overhang_right=len(matching) < nS, 
+                end_length=self.end_length,
+                end_bonus=self.end_bonus
+            )
 
-            if current_score < dimer_score:
-                dimer_score = current_score
-                start_ix = i
-
-        # SET
-        score = dimer_score
-        start_ix = start_ix
+            # Update if this is the new best score
+            if current_score <= best_score:
+                best_score = current_score
+                best_start = i
+                best_matching = matching
+                
+        # Assign to instance variables
+        self.score = best_score
+        self.best_start = best_start
         
-        return score, start_ix
-
+        # Helps with getting alignment string
+        self.best_matching = best_matching
+        self.s = s
+        self.l = l
+        
     def get_alignment_string(self):
         """
-        Could definitely be cleaned up...
+        Return a string representing the best alignment
+        between the two primers
+
         """
 
-        # Redfine sequences based on length
-        n1 = len(self.primer1)
-        n2 = len(self.primer2)
-
-        if n1 > n2:
-            l, nL, lname = self.primer1, n1, self.primer1_name
-            s, nS, sname = self.primer2[::-1], n2, self.primer2_name
+        # Recover names, kinda ugly
+        if self.l == self.primer1:
+            lname = self.primer1_name
+            sname = self.primer2_name
         else:
-            l, nL, lname = self.primer2, n2, self.primer2_name
-            s, nS, sname = self.primer1[::-1], n1, self.primer1_name
+            lname = self.primer2_name
+            sname = self.primer1_name
 
-        # Define long and short primer strings
-        lstr = "'5-" + l + "-3'"
-        sstr = " " * self.start_ix + "'3-" + s + "-5'"
+        # Create space, regardless of length of primer names
+        name_max = max([len(self.primer1_name), len(self.primer2_name)])
+        str_template = "{:>%d}    {}\n" % name_max
 
-        # Determine string specifying match / mismatch
-        match = " " * 3  # compensate for 3'-, 5'-
-        match += " " * self.start_ix  # offset of alignment
-        for s_ix, l_nt in enumerate(l[self.start_ix : (self.start_ix + nS)]):
-            if self.rc_map[l_nt] == s[s_ix]:
-                match += "|"
-            else:
-                match += " "
+        # Create individual strings
+        gap = " "*self.best_start
+        lstr = f"5-{self.l}-3"
+        mstr = f"{gap}  {''.join(['|' if m else ' ' for m in self.best_matching])}"
+        sstr = f"{gap}3-{self.s}-5"
 
-        # Sequence names
-        if lname and sname:
-            nc = max([len(lname), len(sname)])
-        else:
-            nc = 1
-            lname = "L"
-            sname = "S"
+        align_str = f"Dimer Score: {self.score:.03f}\n"
+        align_str += str_template.format(lname, lstr)
+        align_str += str_template.format("", mstr)
+        align_str += str_template.format(sname, sstr)
+        align_str += "\n"
 
-        # Template to allow for names of varying character length
-        seq_str = "{:>%d}:    {}" % nc
-        middle_str = "{:>%d}     {}" % nc
-
-        # Final print
-        self.alignment = f"Dimer Score: {self.score:.02f}\n"
-        self.alignment += f"{seq_str.format(lname, lstr)}\n"
-        self.alignment += f"{middle_str.format('', match)}\n"
-        self.alignment += f"{seq_str.format(sname, sstr)}\n"
-
-        return self.alignment
+        return align_str

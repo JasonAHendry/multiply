@@ -5,7 +5,7 @@ import numpy as np
 
 from multiply.util.printing import print_header, print_footer
 from multiply.util.dirs import produce_dir
-from .algorithms import PrimerDimerAlgorithm
+from .algorithms import PrimerDimerLike
 
 
 def align(primer_csv):
@@ -36,7 +36,7 @@ def align(primer_csv):
     print("Done.\n")
 
     # SET MODEL
-    model = PrimerDimerAlgorithm()
+    model = PrimerDimerLike()
     model.load_parameters()
 
     # COMPUTE PAIRWISE
