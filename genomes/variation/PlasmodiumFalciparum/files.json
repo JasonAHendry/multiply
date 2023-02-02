@@ -1,4 +1,11 @@
 {
     "GLOBAL": "genomes/variation/PlasmodiumFalciparum/pf6.filtered_snps.GLOBAL.bed",
-    "CAF": "genomes/variation/PlasmodiumFalciparum/pf6.filtered_snps.CAF.bed"
+    "CAF": "genomes/variation/PlasmodiumFalciparum/pf6.filtered_snps.CAF.bed",
+    "EAF": "genomes/variation/PlasmodiumFalciparum/pf6.filtered_snps.EAF.bed",
+    "WAF": "genomes/variation/PlasmodiumFalciparum/pf6.filtered_snps.WAF.bed",
+    "ESEA": "genomes/variation/PlasmodiumFalciparum/pf6.filtered_snps.ESEA.bed",
+    "WSEA": "genomes/variation/PlasmodiumFalciparum/pf6.filtered_snps.WSEA.bed",
+    "SAM": "genomes/variation/PlasmodiumFalciparum/pf6.filtered_snps.SAM.bed",
+    "SAS": "genomes/variation/PlasmodiumFalciparum/pf6.filtered_snps.SAS.bed",
+    "OCE": "genomes/variation/PlasmodiumFalciparum/pf6.filtered_snps.OCE.bed"
 }

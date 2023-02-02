@@ -68,8 +68,8 @@ class IndividualCosts:
 
         if not std > 0:
             print(
-                f"No variation in {self.cost_name} observed across primer pairs."
-                "Will not contribute to scoring."
+                f"  No variation in '{self.cost_name}' observed across primer pairs, "
+                "will not contribute to scoring or multiplex selection."
             )
             std = 1
 
