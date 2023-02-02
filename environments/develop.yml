@@ -1,4 +1,4 @@
-name: multiply2
+name: multiply-dev
 channels:
   - conda-forge
   - bioconda
