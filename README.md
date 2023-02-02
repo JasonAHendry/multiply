@@ -20,13 +20,13 @@ Then, install the software dependencies using conda:
 ```
 cd multiply
 conda update conda
-conda env create
-conda activate multiply2
+conda env create -f environments/run.yml
+conda activate multiply-run
 ```
 Finally, install `multiply` itself with pip:
 
 ```
-pip install .
+pip install -e .
 ```
 
 Test installation by running:
