@@ -21,3 +21,11 @@ class NoPrimerNameException(Exception):
 class NoPrimersFoundException(Exception):
     """ Raised  when no primers are found for a target """
     pass
+
+class GenomeSourceNotFound(Exception):
+    """ Raised when a genome source is invalid """
+    pass
+
+class BEDFormattingError(Exception):
+    """ Raised when an input BED file is formatted incorrectly """
+    pass
