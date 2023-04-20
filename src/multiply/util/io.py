@@ -1,6 +1,7 @@
 import subprocess
 import pandas as pd
 from dataclasses import dataclass
+from multiply.util.exceptions import BEDFormattingError
 
 
 # ================================================================================
@@ -27,6 +28,11 @@ def load_bed_as_dataframe(bed_path):
             if l.startswith("#"):
                 continue
             fields = l.strip().split("\t")
+            
+            if not len(fields) == 4:
+                raise BEDFormattingError(f"In bed file: '{bed_path}' ...\n" 
+                                         f"...incorrect formatting of this line: '{repr(l)}'.")
+
             record = BedRecord(
                 seqname=fields[0],
                 start=int(fields[1]),
