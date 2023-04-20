@@ -177,8 +177,27 @@ def standardise_EnsemblGenomes_gff(gff_df, restrict_to=["gene"]):
     return standard_df
 
 
+def standardise_RefSeqGenomes_gff(gff_df, restrict_to=["gene"], source_only=["RefSeq", "BestRefSeq"]):
+    """
+    Standardise GFF dataframe download from RefSeq Genome database
+    
+    """
+    
+    # Query for relevant features
+    standard_df = gff_df.query("feature in @restrict_to and source in @source_only")
+    standard_df = add_gff_attributes(
+        input_df=standard_df,
+        field_names=["Name", "ID"]
+    )
+    standard_df.rename({"Name": "name"}, axis=1, inplace=True)
+    standard_df["ID"] = [s[5:] for s in standard_df["ID"]]  # drop prefix 'gene-'
+    
+    return standard_df
+
+
 # Prepare .gff standardisation
 gff_standardisation_functions = {
     "plasmodb": standardise_PlasmoDB_gff,
     "ensemblgenomes": standardise_EnsemblGenomes_gff,
+    "refseq": standardise_RefSeqGenomes_gff
 }
