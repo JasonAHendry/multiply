@@ -70,7 +70,7 @@ For multiplexes of moderate size (e.g. <20 targets), running the pipeline will t
 
 #### Footnotes
 
-$1$ New organisms can be made available for download by adding them to the collection file located at `genomes/collection.ini`. Any organism available from ensemblgenomes (https://ensemblgenomes.org/) or plasmodb (https://plasmodb.org/plasmo/app/downloads/) can be added to the collection.
+$1$ New organisms can be made available for download by adding them to the collection file located at `genomes/collection.ini`. Any organism available from [PlasmoDB](https://plasmodb.org/plasmo/app/downloads/), [EnsemblGenomes](https://ensemblgenomes.org/) or [RefSeq Genome](https://www.ncbi.nlm.nih.gov/genome/) can be added to the collection.
 
 $2$ You can make your own primer3 settings by creating new or alterating existing JSON files in the `settings/primer3` folder. 
 
@@ -80,11 +80,15 @@ $2$ You can make your own primer3 settings by creating new or alterating existin
 - `primer3`. Individual primer pair design. https://primer3.org/
 - `bedtools`. Genome arithmetic. https://bedtools.readthedocs.io/en/latest/
 - `blastn`. Local alignment search. https://blast.ncbi.nlm.nih.gov/Blast.cgi
-- **plasmodb**. *Plasmodium* reference genome. http://plasmodb.org/plasmo/
+- **PlasmoDB**. *Plasmodium* reference genome. http://plasmodb.org/plasmo/
+- **MalariaGEN**. *Plasmodium* genetic diversity. https://www.malariagen.net/data
+- **EnsemblGenomes**. Additional reference genomes. https://ensemblgenomes.org/
+- **RefSeq Genome**. Additional reference genomes. https://www.ncbi.nlm.nih.gov/genome/
 
 Primer dimer detection uses an alignment algorithm similar to the one described by [Johnston et al. (2019)](https://www.nature.com/articles/s41598-018-36612-9).
 
 ## Citation
+We have a [preprint available on bioRxiv](https://www.biorxiv.org/content/10.1101/2023.02.06.527333v1).
 
 
 ## Acknowledgements
