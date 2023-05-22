@@ -4,6 +4,7 @@ from multiply.util.dirs import produce_dir
 from multiply.util.printing import print_header, print_footer
 from multiply.util.plot import visualise_pairwise_costs
 from multiply.util.io import write_amplicons_to_bed
+from multiply.util.definitions import ROOT_DIR
 from .cost.factories import IndividualCostFactory, PairwiseCostFactory
 from .cost.functions import LinearCost
 from .selectors import selector_collection
@@ -12,8 +13,8 @@ from .plot import plot_explorer_costs
 
 
 # PARAMETERS
-INDV_INI_PATH = "settings/select/individual_costs.ini"
-PAIR_INI_PATH = "settings/select/pairwise_costs.ini"
+INDV_INI_PATH = f"{ROOT_DIR}/settings/select/individual_costs.ini"
+PAIR_INI_PATH = f"{ROOT_DIR}/settings/select/pairwise_costs.ini"
 N_SELECT = 3
 
 

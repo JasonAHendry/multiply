@@ -9,6 +9,7 @@ from multiply.download.collection import genome_collection
 from multiply.util.printing import print_header, print_footer
 from multiply.util.dirs import produce_dir
 from multiply.util.io import write_fasta_from_dict
+from multiply.util.definitions import ROOT_DIR
 
 
 def blast(primer_csv, genome_name):
@@ -35,7 +36,7 @@ def blast(primer_csv, genome_name):
     print(f"  Found {primer_df.shape[0]} primers.")
 
     # LOAD PARAMATERS
-    params = json.load(open("settings/blast/parameters.json", "r"))
+    params = json.load(open(f"{ROOT_DIR}/settings/blast/parameters.json", "r"))
     param_str = [f"{k}={v}" for k, v in params.items()]
     print(f"  BLAST parameters: {', '.join(param_str)}")
     print("Done.\n")

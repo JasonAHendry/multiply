@@ -1,13 +1,14 @@
 import os
 import configparser
+from multiply.util.exceptions import GenomeSourceNotFound
 from multiply.util.definitions import ROOT_DIR
-from multiply.download.genomes import PlasmoDBFactory, EnsemblGenomesFactory
+from multiply.download.genomes import PlasmoDBFactory, EnsemblGenomesFactory, RefSeqGenomesFactory
 
 
 
 
 INI_PATH = f"{ROOT_DIR}/genomes/collection.ini"
-FACTORIES = [PlasmoDBFactory, EnsemblGenomesFactory]
+FACTORIES = [PlasmoDBFactory, EnsemblGenomesFactory, RefSeqGenomesFactory]
 
 # ================================================================================
 # Define a collection of Genome objects
@@ -43,6 +44,7 @@ class GenomeCollection(dict):
 
         # Set the factories used to build Genome objects
         self._factories = factories
+        self._factory_names = [f.source for f in self._factories]
 
     def populate(self):
         """
@@ -57,6 +59,11 @@ class GenomeCollection(dict):
             source = kwargs.pop("source")
 
             # Get suitable factory
+            if not source in self._factory_names:
+                raise GenomeSourceNotFound(f"No support to download genomes from source '{source}'. "
+                                           f" Supported sources: {', '.join(self._factory_names)}."
+                                           )
+
             (factory,) = [factory() for factory in self._factories if factory.source == source]
 
             # Create genome
@@ -71,8 +78,8 @@ class GenomeCollection(dict):
         
         """
 
-        has_fasta = os.path.isfile(self[genome_name].fasta_path)
-        has_gff = os.path.isfile(self[genome_name].gff_path)
+        has_fasta = os.path.isfile(f"{ROOT_DIR}/{self[genome_name].fasta_path}")
+        has_gff = os.path.isfile(f"{ROOT_DIR}/{self[genome_name].gff_path}")
 
         return has_fasta and has_gff
 

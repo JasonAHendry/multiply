@@ -1,6 +1,7 @@
 import json
 import subprocess
 import numpy as np
+from multiply.util.definitions import ROOT_DIR
 
 
 class Primer3Runner:
@@ -34,7 +35,7 @@ class Primer3Runner:
 
         # Load the settings
         self.setting_name = setting_name
-        self.settings = json.load(open(f"{self.settings_dir}/{setting_name}.json", "r"))
+        self.settings = json.load(open(f"{ROOT_DIR}/{self.settings_dir}/{setting_name}.json", "r"))
 
         # Record
         self.settings_loaded = True

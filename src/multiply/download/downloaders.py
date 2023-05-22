@@ -3,7 +3,9 @@ import gzip
 import shutil
 import logging
 import urllib.request
+from multiply.util.definitions import ROOT_DIR
 from multiply.download.gff import load_gff
+from multiply.download.fasta import convert_fasta_to_all_uppercase
 
 
 # Prepare logger
@@ -34,7 +36,7 @@ class GenomeDownloader:
         self.genome = genome
 
         # Prepare logging
-        log_path = f"genomes/information/{genome.name}/{genome.name}.log"
+        log_path = f"{ROOT_DIR}/genomes/information/{genome.name}/{genome.name}.log"
         self.produce_dir(log_path)
 
         # File Handler
@@ -68,70 +70,79 @@ class GenomeDownloader:
                 shutil.copyfileobj(fi, fo)
 
 
-    def download_fasta(self, decompress=True):
+    def _download(self, file_url, file_raw_path, decompress=False, file_decompressed_path=None):
         """
-        Download .fasta information associated with Genome
-        
+        Download a source file from `file_url` to a local path `file_raw_path`, and then
+        optionally `decompress` to `file_decompressed_path`
+
         """
 
-        logger.info("Downloading .fasta information.")
-        logger.info(f"  Source URL: {self.genome.fasta_url}")
-        logger.info(f"  Destination path: {self.genome.fasta_raw_download}")
-
-        # Skip if already downloaded
-        if self.exists_locally(self.genome.fasta_raw_download):
-            logger.info("  Already downloaded.")
-            logger.info("  Skipping.")
-            logger.info("")
-
-            return
+        logger.info(f"  Source URL: {file_url}")
+        logger.info(f"  Destination path: {file_raw_path}")
 
         # Otherwise, download from the URL
         logger.info("  Downloading...")
 
-        self.produce_dir(self.genome.fasta_raw_download)
+        self.produce_dir(file_raw_path)
         urllib.request.urlretrieve(
-            url=self.genome.fasta_url, filename=self.genome.fasta_raw_download
+            url=file_url, filename=file_raw_path
         )
 
-        if decompress:
+        if decompress and file_decompressed_path is not None:
             logger.info("  Decompressing...")
             self.decompress_file(
-                input_file_path=self.genome.fasta_raw_download,
-                decompressed_file_path=self.genome.fasta_path,
+                input_file_path=file_raw_path,
+                decompressed_file_path=file_decompressed_path
             )
 
         logger.info("  Done.")
         logger.info("")
-
-    def download_gff(self):
-        """
-        Download .gff information associated with Genome
         
+    def download_fasta(self, unmask=False):
+        """
+        Download .fasta information associated with Genome
+
         """
 
-        logger.info("Downloading .gff information.")
-        logger.info(f"  Source URL: {self.genome.gff_url}")
-        logger.info(f"  Destination path: {self.genome.gff_raw_download}")
-
-        # Skip if already downloaded
-        if self.exists_locally(self.genome.gff_raw_download):
+        logger.info("Downloading .fasta information.")
+        if self.exists_locally(f"{ROOT_DIR}/{self.genome.fasta_path}"):
             logger.info("  Already downloaded.")
             logger.info("  Skipping.")
             logger.info("")
-
             return
-
-        # Otherwise, download from the URL
-        logger.info("  Downloading...")
-
-        self.produce_dir(self.genome.gff_raw_download)
-        urllib.request.urlretrieve(
-            url=self.genome.gff_url, filename=self.genome.gff_raw_download
+        
+        self._download(
+            file_url=self.genome.fasta_url,
+            file_raw_path=f"{ROOT_DIR}/{self.genome.fasta_raw_download}",
+            decompress=True,
+            file_decompressed_path=f"{ROOT_DIR}/{self.genome.fasta_path}"
         )
+        
+        if unmask:
+            logger.info("This .fasta file requires soft-clipping to be unmasked.")
+            logger.info("  Unmasking...")
+            convert_fasta_to_all_uppercase(f"{ROOT_DIR}/{self.genome.fasta_path}")
+            logger.info("  Done.")
+            logger.info("")
+        
+    def download_gff(self):
+        """
+        Download .fasta information associated with Genome
 
-        logger.info("  Done.")
-        logger.info("")
+        """
+
+        logger.info("Downloading .gff information.")
+        if self.exists_locally(f"{ROOT_DIR}/{self.genome.gff_raw_download}"):
+            logger.info("  Already downloaded.")
+            logger.info("  Skipping.")
+            logger.info("")
+            return
+        
+        self._download(
+            file_url=self.genome.gff_url,
+            file_raw_path=f"{ROOT_DIR}/{self.genome.gff_raw_download}",
+            decompress=False
+        )
 
     def standardise_gff(self, standardise_fn):
         """
@@ -141,27 +152,26 @@ class GenomeDownloader:
         """
 
         logger.info("Standardising .gff information.")
-        logger.info(f"  Raw .gff: {self.genome.gff_raw_download}")
-        logger.info(f"  Standardised .gff: {self.genome.gff_path}")
+        logger.info(f"  Raw .gff: {ROOT_DIR}/{self.genome.gff_raw_download}")
+        logger.info(f"  Standardised .gff: {ROOT_DIR}/{self.genome.gff_path}")
 
         # Skip if already downloaded
-        if self.exists_locally(self.genome.gff_path):
+        if self.exists_locally(f"{ROOT_DIR}/{self.genome.gff_path}"):
             logger.info("  Already standardised.")
             logger.info("  Skipping.")
             logger.info("")
-
             return
 
         # Otherwise standardise
         logger.info(f"  Loading downloaded .gff...")
-        gff = load_gff(self.genome.gff_raw_download)
+        gff = load_gff(f"{ROOT_DIR}/{self.genome.gff_raw_download}")
         logger.info(f"  Found {gff.shape[0]} entries in .gff.")
         logger.info(f"  Standardising...")
         standard_gff = standardise_fn(gff)
         logger.info(f"  {standard_gff.shape[0]} entries remain.")
         logger.info(f"  Example IDs: {', '.join(standard_gff.sample(6)['ID'])}")
         logger.info(f"  Writing...")
-        standard_gff.to_csv(self.genome.gff_path, index=False)
+        standard_gff.to_csv(f"{ROOT_DIR}/{self.genome.gff_path}", index=False)
         logger.info("  Done.")
         logger.info("")
 

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from multiply.util.definitions import ROOT_DIR
 
 
 # ================================================================================
@@ -38,7 +39,7 @@ class GenomeFactory(ABC):
     
     """
 
-    output_dir = "genomes/information"
+    output_dir = f"{ROOT_DIR}/genomes/information"
 
     @abstractmethod
     def create_genome(self):
@@ -101,10 +102,21 @@ class EnsemblGenomesFactory(GenomeFactory):
     source = "ensemblgenomes"
     release = 52
 
+    clades = [
+        "plants",
+        "metazoa",
+        "protists",
+        "fungi",
+        "bacteria"
+    ]
+
     def create_genome(
         self, name, clade, genus, species, assembly, include_variation=None
     ):
         """Create a genome object from EnsemblGenomes"""
+
+        if not clade in self.clades:
+            raise ValueError(f"Provided clade '{clade}' not in clade list:\n{', '.join(self.clades)}.")
 
         # Define source URL
         source_url = "http://ftp.ensemblgenomes.org/pub/"
@@ -139,3 +151,78 @@ class EnsemblGenomesFactory(GenomeFactory):
         )
 
         return genome
+
+
+class RefSeqGenomesFactory(GenomeFactory):
+    """
+    Create Genome objects from RefSeq Genome database
+    
+    https://www.ncbi.nlm.nih.gov/genome/
+    
+    """
+    
+    source = "refseq"
+    
+    clades = [
+        "archea",
+        "bacteria",
+        "fungi",
+        "invertebrate",
+        "metagenomes",
+        "mitochondrion",
+        "plant",
+        "plasmid",
+        "protozoa",
+        "unknown",
+        "vertebrate_mammalian",
+        "vertebrate_other",
+        "viral"
+    ]  # could be an Enum
+    
+    
+    def create_genome(
+        self,
+        name,
+        clade,
+        genus,
+        species,
+        assembly,
+        include_variation=None
+    ):
+        """Create a genome object from RefSeq Genomes"""
+        
+        if not clade in self.clades:
+            raise ValueError(f"Provided clade '{clade}' not in clade list:\n{', '.join(self.clades)}.")
+        
+        # Define source URL
+        source_url = "https://ftp.ncbi.nlm.nih.gov/genomes/refseq/"
+        source_url += f"{clade}/{genus.lower().capitalize()}_{species.lower()}/"
+        source_url += f"all_assembly_versions/{assembly}"
+        
+        # Prepare FASTA information
+        fasta_fn = f"{assembly}_genomic.fna.gz"
+        fasta_url = f"{source_url}/{fasta_fn}"
+        fasta_raw_download = f"{self.output_dir}/{name}/{fasta_fn}"
+        fasta_path = fasta_raw_download.replace(".gz", "")
+        
+        # Prepare GFF information
+        gff_fn = f"{assembly}_genomic.gff.gz"
+        gff_url = f"{source_url}/{gff_fn}"
+        gff_raw_download = f"{self.output_dir}/{name}/{gff_fn}"
+        gff_path = gff_raw_download.replace(".gff.gz", ".csv")
+        
+        # Create Genome
+        genome = Genome(
+            name=name,
+            source=self.source,
+            fasta_url=fasta_url,
+            fasta_raw_download=fasta_raw_download,
+            fasta_path=fasta_path,
+            gff_url=gff_url,
+            gff_raw_download=gff_raw_download,
+            gff_path=gff_path,
+            include_variation=include_variation if include_variation is not None else "",
+        )
+
+        return genome
+    
