@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from multiply.util.definitions import ROOT_DIR
 
 
 # ================================================================================
@@ -38,7 +39,7 @@ class GenomeFactory(ABC):
     
     """
 
-    output_dir = "genomes/information"
+    output_dir = f"{ROOT_DIR}/genomes/information"
 
     @abstractmethod
     def create_genome(self):
