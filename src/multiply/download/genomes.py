@@ -101,10 +101,21 @@ class EnsemblGenomesFactory(GenomeFactory):
     source = "ensemblgenomes"
     release = 52
 
+    clades = [
+        "plants",
+        "metazoa",
+        "protists",
+        "fungi",
+        "bacteria"
+    ]
+
     def create_genome(
         self, name, clade, genus, species, assembly, include_variation=None
     ):
         """Create a genome object from EnsemblGenomes"""
+
+        if not clade in self.clades:
+            raise ValueError(f"Provided clade '{clade}' not in clade list:\n{', '.join(self.clades)}.")
 
         # Define source URL
         source_url = "http://ftp.ensemblgenomes.org/pub/"
