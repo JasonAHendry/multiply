@@ -22,3 +22,12 @@ dev*
 # Misc.
 .coverage
 notes
+.images/multiply-pipeline.ai
+TODO.txt
+
+# Design files probably shouldn't be committed
+designs/*
+!designs/pf-default.ini
+!designs/ag-default.ini
+!designs/ca-default.ini
+!designs/beds/large_genes.bed
