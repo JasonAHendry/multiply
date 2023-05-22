@@ -4,6 +4,7 @@ from numba.typed import Dict
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from .nn_model import create_nn_score_dt
+from multiply.util.definitions import ROOT_DIR
 
 
 # ================================================================================
@@ -119,7 +120,7 @@ class PrimerDimerLike(AlignmentAlgorithm):
     
     """
     
-    param_path = "settings/alignment/primer_dimer/parameters.json"
+    param_path = f"{ROOT_DIR}/settings/alignment/primer_dimer/parameters.json"
     
     def load_parameters(self):
         """
@@ -132,9 +133,9 @@ class PrimerDimerLike(AlignmentAlgorithm):
 
         # Load nearest neighbour model
         self.nn_scores = create_nn_score_dt(
-            match_json=params["match_scores"],
-            single_mismatch_json=params["single_mismatch_scores"],
-            double_mismatch_score=params["double_mismatch_score"]
+            match_json=f"{ROOT_DIR}/{params['match_scores']}",  # this is a path
+            single_mismatch_json=f"{ROOT_DIR}/{params['single_mismatch_scores']}",  # this is a path
+            double_mismatch_score=params['double_mismatch_score']  # this is a float
         )
 
         # Load penalties
