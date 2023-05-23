@@ -105,7 +105,7 @@ class GenomeDownloader:
         """
 
         logger.info("Downloading .fasta information.")
-        if self.exists_locally(f"{ROOT_DIR}/{self.genome.fasta_path}"):
+        if self.exists_locally(self.genome.fasta_path):
             logger.info("  Already downloaded.")
             logger.info("  Skipping.")
             logger.info("")
@@ -113,15 +113,15 @@ class GenomeDownloader:
         
         self._download(
             file_url=self.genome.fasta_url,
-            file_raw_path=f"{ROOT_DIR}/{self.genome.fasta_raw_download}",
+            file_raw_path=self.genome.fasta_raw_download,
             decompress=True,
-            file_decompressed_path=f"{ROOT_DIR}/{self.genome.fasta_path}"
+            file_decompressed_path=self.genome.fasta_path
         )
         
         if unmask:
             logger.info("This .fasta file requires soft-clipping to be unmasked.")
             logger.info("  Unmasking...")
-            convert_fasta_to_all_uppercase(f"{ROOT_DIR}/{self.genome.fasta_path}")
+            convert_fasta_to_all_uppercase(self.genome.fasta_path)
             logger.info("  Done.")
             logger.info("")
         
@@ -132,7 +132,7 @@ class GenomeDownloader:
         """
 
         logger.info("Downloading .gff information.")
-        if self.exists_locally(f"{ROOT_DIR}/{self.genome.gff_raw_download}"):
+        if self.exists_locally(self.genome.gff_raw_download):
             logger.info("  Already downloaded.")
             logger.info("  Skipping.")
             logger.info("")
@@ -140,7 +140,7 @@ class GenomeDownloader:
         
         self._download(
             file_url=self.genome.gff_url,
-            file_raw_path=f"{ROOT_DIR}/{self.genome.gff_raw_download}",
+            file_raw_path=self.genome.gff_raw_download,
             decompress=False
         )
 
@@ -152,11 +152,11 @@ class GenomeDownloader:
         """
 
         logger.info("Standardising .gff information.")
-        logger.info(f"  Raw .gff: {ROOT_DIR}/{self.genome.gff_raw_download}")
-        logger.info(f"  Standardised .gff: {ROOT_DIR}/{self.genome.gff_path}")
+        logger.info(f"  Raw .gff: {self.genome.gff_raw_download}")
+        logger.info(f"  Standardised .gff: {self.genome.gff_path}")
 
         # Skip if already downloaded
-        if self.exists_locally(f"{ROOT_DIR}/{self.genome.gff_path}"):
+        if self.exists_locally(self.genome.gff_path):
             logger.info("  Already standardised.")
             logger.info("  Skipping.")
             logger.info("")
@@ -164,14 +164,14 @@ class GenomeDownloader:
 
         # Otherwise standardise
         logger.info(f"  Loading downloaded .gff...")
-        gff = load_gff(f"{ROOT_DIR}/{self.genome.gff_raw_download}")
+        gff = load_gff(self.genome.gff_raw_download)
         logger.info(f"  Found {gff.shape[0]} entries in .gff.")
         logger.info(f"  Standardising...")
         standard_gff = standardise_fn(gff)
         logger.info(f"  {standard_gff.shape[0]} entries remain.")
         logger.info(f"  Example IDs: {', '.join(standard_gff.sample(6)['ID'])}")
         logger.info(f"  Writing...")
-        standard_gff.to_csv(f"{ROOT_DIR}/{self.genome.gff_path}", index=False)
+        standard_gff.to_csv(self.genome.gff_path, index=False)
         logger.info("  Done.")
         logger.info("")
 
