@@ -1,6 +1,6 @@
 import os
 import configparser
-from multiply.util.exceptions import GenomeSourceNotFound
+from multiply.util.exceptions import GenomeCollectionError
 from multiply.util.definitions import ROOT_DIR
 from multiply.download.genomes import PlasmoDBFactory, EnsemblGenomesFactory, RefSeqGenomesFactory
 
@@ -60,7 +60,7 @@ class GenomeCollection(dict):
 
             # Get suitable factory
             if not source in self._factory_names:
-                raise GenomeSourceNotFound(f"No support to download genomes from source '{source}'. "
+                raise GenomeCollectionError(f"No support to download genomes from source '{source}'. "
                                            f" Supported sources: {', '.join(self._factory_names)}."
                                            )
 
@@ -78,8 +78,8 @@ class GenomeCollection(dict):
         
         """
 
-        has_fasta = os.path.isfile(f"{ROOT_DIR}/{self[genome_name].fasta_path}")
-        has_gff = os.path.isfile(f"{ROOT_DIR}/{self[genome_name].gff_path}")
+        has_fasta = os.path.isfile(self[genome_name].fasta_path)
+        has_gff = os.path.isfile(self[genome_name].gff_path)
 
         return has_fasta and has_gff
 
