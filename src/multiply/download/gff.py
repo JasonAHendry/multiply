@@ -196,7 +196,7 @@ def standardise_RefSeqGenomes_gff(gff_df, restrict_to=["gene"], source_only=["Re
 
 def standardise_VectorBaseGenomes_gff(gff_df, restrict_to=["protein_coding_gene"], source_only=["VEuPathDB"]):
     """
-    Standardise GFF dataframe download from RefSeq Genome database
+    Standardise GFF dataframe download from vectorbase database
     
     """
     
