@@ -2,13 +2,13 @@ import os
 import configparser
 from multiply.util.exceptions import GenomeCollectionError
 from multiply.util.definitions import ROOT_DIR
-from multiply.download.genomes import PlasmoDBFactory, EnsemblGenomesFactory, RefSeqGenomesFactory
+from multiply.download.genomes import PlasmoDBFactory, EnsemblGenomesFactory, RefSeqGenomesFactory, VectorBaseFactory
 
 
 
 
 INI_PATH = f"{ROOT_DIR}/genomes/collection.ini"
-FACTORIES = [PlasmoDBFactory, EnsemblGenomesFactory, RefSeqGenomesFactory]
+FACTORIES = [PlasmoDBFactory, EnsemblGenomesFactory, RefSeqGenomesFactory, VectorBaseFactory]
 
 # ================================================================================
 # Define a collection of Genome objects

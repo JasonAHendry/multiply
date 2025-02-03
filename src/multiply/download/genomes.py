@@ -100,6 +100,53 @@ class PlasmoDBFactory(GenomeFactory):
 
         return genome
 
+class VectorBaseFactory(GenomeFactory):
+    """
+    Create Genome objects from VectorBase
+
+    """
+
+    source = "vectorbase"
+    source_url = "https://vectorbase.org/common/downloads"
+
+    def create_genome(self, name, genus, species, strain, release, include_variation=None):
+        """Create a genome object from VectorBase"""
+
+        # Process input information
+        lineage = f"{genus.capitalize()[0]}{species.lower()}{strain}"
+
+        # Get URL for species, strain
+        data_url = f"{self.source_url}/release-{release}/{lineage}"
+
+        # Prepare FASTA information
+        fasta_fn = f"VectorBase-{release}_{lineage}_Genome.fasta"
+        fasta_url = f"{data_url}/fasta/data/{fasta_fn}"
+        fasta_raw_download = f"{self.output_dir}/{name}/{fasta_fn}"
+        fasta_path = fasta_raw_download  # already decompressed
+
+        # Prepare GFF information
+        gff_fn = f"VectorBase-{release}_{lineage}.gff"
+        gff_url = f"{data_url}/gff/data/{gff_fn}"
+        gff_raw_download = f"{self.output_dir}/{name}/{gff_fn}"
+        gff_path = gff_raw_download.replace(".gff", ".csv")
+
+        # Create Genome
+        genome = Genome(
+            name=name,
+            source=self.source,
+            fasta_url=fasta_url,
+            fasta_raw_download=fasta_raw_download,
+            fasta_path=fasta_path,
+            gff_url=gff_url,
+            gff_raw_download=gff_raw_download,
+            gff_path=gff_path,
+            include_variation=include_variation
+            if include_variation is not None
+            else "",
+        )
+
+        return genome
+
 
 class EnsemblGenomesFactory(GenomeFactory):
     """
@@ -300,3 +347,5 @@ class RefSeqGenomesFactory(GenomeFactory):
         )
 
         return genome
+
+
