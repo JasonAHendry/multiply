@@ -194,10 +194,26 @@ def standardise_RefSeqGenomes_gff(gff_df, restrict_to=["gene"], source_only=["Re
     
     return standard_df
 
+def standardise_VectorBaseGenomes_gff(gff_df, restrict_to=["protein_coding_gene"], source_only=["VEuPathDB"]):
+    """
+    Standardise GFF dataframe download from vectorbase database
+    
+    """
+    
+    # Query for relevant features
+    standard_df = gff_df.query("feature in @restrict_to and source in @source_only")
+    standard_df = add_gff_attributes(
+        input_df=standard_df,
+        field_names=["Name", "ID"]
+    )
+    standard_df.rename({"Name": "name"}, axis=1, inplace=True)
+        
+    return standard_df
 
 # Prepare .gff standardisation
 gff_standardisation_functions = {
     "plasmodb": standardise_PlasmoDB_gff,
+    "vectorbase": standardise_VectorBaseGenomes_gff,
     "ensemblgenomes": standardise_EnsemblGenomes_gff,
-    "refseq": standardise_RefSeqGenomes_gff
+    "refseq": standardise_RefSeqGenomes_gff,
 }
