@@ -33,6 +33,7 @@ def convert_fasta_to_all_uppercase(fasta_path: str, dry_run=False) -> None:
 unmask_fasta_info = {
     "plasmodb": False,
     "ensemblgenomes": False,
-    "refseq": True
+    "refseq": True,
+    "vectorbase": False
 }
 

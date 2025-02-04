@@ -121,7 +121,7 @@ class GffPlotter:
         plot_gff = self.gff.query(qry).query("feature in @self.gff_features")
 
         # Ensure there are some regions
-        assert plot_gff.shape[0] > 0, "No features in this region."
+        #assert plot_gff.shape[0] > 0, "No features in this region."
 
         return plot_gff
 

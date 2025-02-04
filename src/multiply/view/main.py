@@ -75,6 +75,10 @@ def view(result_dir, genome_name):
         )
         primer_plotter = PrimerPlotter(target_primer_df)
 
+        # if there are no features to plot, skip this site
+        if gff_plotter.plot_gff.shape[0] == 0:
+            continue
+
         # Compose
         comb_plotter = CombinedPlotter(
             sequence_plotter=seq_plotter,
