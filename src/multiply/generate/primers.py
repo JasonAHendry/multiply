@@ -20,13 +20,13 @@ class Primer:
 
     def add_tail(self, tail_seq):
         """
-        Add a tail sequence to the end of a Primer
+        Add a tail sequence to the 5' end of a Primer
 
         """
         
         assert isinstance(tail_seq, str), "Tail sequence must be a string."
         length_tail = len(tail_seq)
-        self.seq += tail_seq
+        self.seq = tail_seq + self.seq
         self.length += length_tail
 
 @dataclass
