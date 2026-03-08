@@ -25,6 +25,7 @@ def parse_parameters(design_path):
     params = {}
     params = add_samples(config, params)
     params = add_genes(config, params)
+    params = add_extend(config, params)
     params = add_regions(config, params)
     params = add_primers(config, params)
     params = add_amplicons(config, params)
@@ -58,7 +59,7 @@ def check_design_exists(design_path):
 def check_valid_sections(
     config,
     must_include=["Sample", "Primers", "Amplicons", "Output"],
-    one_of=[["Genes", "Regions"]],
+    one_of=[["Genes", "Regions"]]
 ):
     """
     Check that all expected sections are found within the configuration object
@@ -90,7 +91,6 @@ def check_valid_sections(
             raise DesignFileError(
                 f"Design must include at least one of these sections: {', '.join(section_set)}. Please add."
             )
-
 
 def add_samples(config, params):
     """
@@ -174,6 +174,122 @@ def add_genes(config, params):
 
     return params
 
+def add_extend(config, params):
+    """
+    Add [Extend] information from a configparser object to a params dictionary
+    This is similar to the [Genes] section but lists previously-defined primers, via
+    a well-formed candidate primers table.
+    The input design_file can be, e.g. either the table.candidate_primers.csv or the
+    output table.multiplexes_information.csv from a previous run - it must have these columns:
+        'target_id',
+        'target_name',
+        'pair_name',
+        'primer_name',
+        'direction',
+        'seq',
+        'length',
+        'tm',
+        'gc',
+        'chrom',
+        'start',
+        'product_bp',
+        'pair_penalty'
+
+    params
+        config: ConfigParser
+            ConfigParser object holding design file information.
+        params: dict
+            Dictionary of MULTIPLY parameters.
+    returns
+        params: dict
+            Dictionary of MULTIPLY parameters, with [Extend]
+            parameters added.
+    """
+
+    # Check if genes have been provided
+    if not config.has_section("Extend"):
+        params["from_extend"] = False
+        return params
+
+    # Parse gene IDs
+    target_ids = [g.strip() for g in config.get("Extend", "target_ids").split(",")]
+
+    # Parse gene namess
+    has_names = config.has_option("Extend", "target_names")
+    if has_names:
+        target_names = [
+            g.strip() for g in config.get("Extend", "target_names").split(",")
+        ]
+    else:
+        target_names = target_ids
+
+    # Sanity checks
+    n_ids = len(target_ids)
+    n_names = len(target_names)
+    if not n_ids == n_names:
+        raise DesignFileError(
+            f"In [Extend], found {n_ids} `target_ids` and {n_names} `target_names`. Ensure equal."
+        )
+
+    # Load the previously-defined primers:
+    import pandas
+    design_file = config.get("Extend", "design_file" )
+    primer_df = pandas.read_csv( design_file )
+    primer_df = primer_df[
+        [
+            'target_id',
+            'target_name',
+            'pair_name',
+            'primer_name',
+            'direction',
+            'seq',
+            'length',
+            'tm',
+            'gc',
+            'chrom',
+            'start',
+            'product_bp',
+            'pair_penalty'
+        ]
+    ]
+    # Check all specified genes are represented in the file and have the correct names:
+    for index, id in enumerate( target_ids ):
+        this_target = primer_df[ primer_df.target_id == id ]
+        if this_target.shape[0] == 0:
+            raise DesignFileError(
+                f"In [Extend], target id \"{id}\" was not among the targets in the specified design file \"{design_file}\"."
+            )
+        target_name = list( set( this_target.target_name.to_list() ))
+        if len(target_name) > 1:
+            raise DesignFileError(
+                f"In [Extend], in the specified design file \"{design_file}\", target {target_id} seems to have more than one name."
+            )
+        target_name = target_name[0]
+        if has_names:
+            # If we're given names, make sure they are correct:
+            if target_name != target_names[index]:
+                raise DesignFileError(
+                    f"In [Extend], the name (\"{target_name}\") for target {id} in the design file \"{design_file}\", does not match the one specified (\"{target_names[index]}\")."
+                )
+        else:
+            # Otherwise get the name from the file:
+            target_names[index] = target_name
+
+    primer_df = primer_df[ primer_df.target_id.isin( target_ids )]
+
+    # Mapping between IDs and names
+    id_to_name = {i: n for i, n in zip(target_ids, target_names)}
+    name_to_id = {n: i for i, n in id_to_name.items()}
+
+    # Add to dictionary
+    params["from_extend"]       = True
+    params["extend_ids"]        = target_ids
+    params["extend_has_names"]  = True
+    params["extend_names"]      = target_names
+    params["extend_id_to_name"] = id_to_name
+    params["extend_primers"]    = primer_df
+
+    return params
 
 def add_regions(config, params):
     """

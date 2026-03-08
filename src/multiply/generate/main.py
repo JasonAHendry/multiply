@@ -140,7 +140,6 @@ def generate(design):
         print("Done.\n")
 
     # WRITE
-    print("Writing output table...")
     primer_df = pd.DataFrame(
         [
             pair.get_primer_as_dict(direction)
@@ -166,7 +165,16 @@ def generate(design):
             "pair_penalty",
         ]
     ]
+
+    if params['from_extend']:
+        print( f"Adding {params['extend_primers'].shape[0]} previously-generated primers from [Extend] section..." )
+        primer_df = pd.concat([
+            primer_df,
+            params['extend_primers']
+        ])
+
     output_csv = f"{params['output_dir']}/table.candidate_primers.csv"
+    print( f"Writing output table to \"{output_csv}\"..." )
     primer_df.to_csv(output_csv, index=False)
     print(f"  to: {output_csv}")
     print("Done.\n")

@@ -75,6 +75,16 @@ $1$ New organisms can be made available for download by adding them to the colle
 $2$ You can make your own primer3 settings by creating new or alterating existing JSON files in the `settings/primer3` folder. 
 
 
+## Extending previously-designed panels
+
+It's also possible to ask `multiply` to find designs that extend an existing multiplex primer panel (for example, one that has already been tested in the lab). To use this functionality:
+
+- specify the path to the `multiply` multiplex output for the previous designs - and a list of regions - in the `[Extend]` section of your design file.
+- then run the pipeline as usual.
+
+Multiple will search for primers in your regions of interest at the `generate` step, but will combine them with the previously-designed primers for all subsequent steps of the pipeline to build new multiplexes extending the original one. (An example of this process can be found in the `designs/pf-extend.ini` file.)
+
+
 ## Resources
 `multiply` uses the following external software and databases:
 - `primer3`. Individual primer pair design. https://primer3.org/

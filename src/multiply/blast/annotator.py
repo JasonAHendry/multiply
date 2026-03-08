@@ -82,7 +82,7 @@ class BlastResultsAnnotator:
                 primer_pair_name=qseqid[:-2],
                 target_name=qseqid.split("_")[0],
                 total_alignments=qseqid_df.shape[0],
-                **qseqid_df[self.annotations].sum().to_dict(),
+                **qseqid_df[self.annotations.keys()].sum().to_dict(),
             )
             for qseqid, qseqid_df in self.blast_df.groupby("qseqid")
         ]
