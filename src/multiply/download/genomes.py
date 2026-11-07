@@ -155,7 +155,7 @@ class EnsemblGenomesFactory(GenomeFactory):
     """
 
     source = "ensemblgenomes"
-    release = 56
+    release = 63
 
     clades = ["plants", "metazoa", "protists", "fungi", "bacteria"]
 
@@ -170,7 +170,7 @@ class EnsemblGenomesFactory(GenomeFactory):
             )
 
         # Define source URL
-        source_url = "http://ftp.ensemblgenomes.org/pub/"
+        source_url = "https://ftp.ebi.ac.uk/pub/ensemblgenomes/"
         source_url += f"{clade}/release-{self.release}"
 
         # Process input information
